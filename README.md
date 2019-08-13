@@ -15,19 +15,13 @@ docker run --rm -v $(pwd)/contracts:/contracts ethereum/solc:0.5.10 --optimize -
 
 # Testing
 
+***to be migrated to this repository***
+
 The test can be run by using the command `npm test`. However, the tests for the in3-node are using the `evm_increaseTime` command that regular ethereum-clients do not support, but is needed in order to test how the contract react to certain dates in the future (e.g. 1 year after deployment). For this, there is a special docker container using a reverse proxy in combination with libfaketime (see https://github.com/wolfcw/libfaketime) allowing the change of time for parities. Nevertheless, the test should also run using a regular geth-client. 
 
 # Contracts 
 
 ## NodeRegistry
-
-### Deployment
-
-The NodeRegistry can be deployed using the function `deployNodeRegistry(pk: string, url = 'http://localhost:8545', transport?: Transport)`. As the NodeRegistry needs a BlockhashRegistry contract-address during the deployment, both of them will be deployed at once and automatically linked. 
-
-An alternative way of deploying only the NodeRegistry and using an already deployed BlockhashRegistry-contract would be using `deployContract(url, '0x' + bin.contracts[Object.keys(bin.contracts).find(_ => _.indexOf('NodeRegistry') >= 0)].bin + padStart(blockHashAddress, 64, "0")`. 
-
-Both of the function can be found within the `src/util/registry.ts` file.
 
 ### Usage and Purpose 
 
