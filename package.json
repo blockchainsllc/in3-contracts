@@ -1,0 +1,24 @@
+{
+  "name": "in3-contracts",
+  "version": "1.0.0",
+  "description": "The in3-node provides data from the ethereum clients to the in3-clients. They can either act as an regular RPC-provider, but they can also provide merkle-proofs(see https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_getproof) for their responses and also sign blockhashes.",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://git.slock.it/in3/in3-contracts.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "truffle": "5.0.31"
+  },
+  "dependencies": {
+    "web3": "^1.2.1"
+  }
+}
