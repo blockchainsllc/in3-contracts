@@ -13,7 +13,7 @@ const deployBlockHashRegistry = async (url, privateKey) => {
     const transactionParams = {
         from: ethAcc.address,
         data: bin.bytecode,
-        gas: 4000000,
+        gas: 7000000,
         nonce: nonce,
         gasPrice: await web3.eth.getGasPrice(),
         to: ''
@@ -21,7 +21,6 @@ const deployBlockHashRegistry = async (url, privateKey) => {
 
     const signedTx = await web3.eth.accounts.signTransaction(transactionParams, ethAcc.privateKey);
     const tx = await (web3.eth.sendSignedTransaction(signedTx.rawTransaction));
-    console.log("bockHashRegistryAddress", tx.contractAddress)
     return tx
 }
 
@@ -35,12 +34,13 @@ const deployNodeRegistry = async (url, blockHashRegistryAddress, privateKey) => 
 
     const bhAddress = blockHashRegistryAddress ? blockHashRegistryAddress : (await deployBlockHashRegistry(url, ethAcc.privateKey)).contractAddress
 
-    //  console.log(bin.bytecode + web3.eth.abi.encodeParameters(['address'], [bhAddress]).substr(2))
+    const blockBefore = await web3.eth.getBlock('latest')
+
     const nonce = await web3.eth.getTransactionCount(ethAcc.address)
     const transactionParams = {
         from: ethAcc.address,
         data: bin.bytecode + web3.eth.abi.encodeParameters(['address'], [bhAddress]).substr(2),
-        gas: 7000000,
+        gas: blockBefore.gasLimit,
         nonce: nonce,
         gasPrice: await web3.eth.getGasPrice(),
         to: ''
@@ -50,7 +50,6 @@ const deployNodeRegistry = async (url, blockHashRegistryAddress, privateKey) => 
     const signedTx = await web3.eth.accounts.signTransaction(transactionParams, ethAcc.privateKey);
 
     const tx = await (web3.eth.sendSignedTransaction(signedTx.rawTransaction));
-    console.log("NodeRegistryAddress", tx.contractAddress)
     return tx
 }
 

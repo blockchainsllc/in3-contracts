@@ -1,4 +1,5 @@
-const deployment = require('/Users/mkuechler/Documents/in3-stuff/in3-contracts/src/utils/deployment.js')
+const deployment = require('../src/utils/deployment')
+
 
 module.exports = async (deployer) => {
 
