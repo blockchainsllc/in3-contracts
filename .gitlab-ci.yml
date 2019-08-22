@@ -29,7 +29,6 @@ test-parity:
   tags:
     - short-jobs
   variables:
-    RPCURL: http://blockchainclient:8545
     IPFS_URL: http://ipfs:5001
   services:
     - name: jbenet/go-ipfs:latest
