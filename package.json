@@ -7,7 +7,9 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "compile": "./node_modules/.bin/truffle compile",
+    "migrate": "./node_modules/.bin/truffle migrate",
+    "test": "./node_modules/.bin/truffle test"
   },
   "repository": {
     "type": "git",
@@ -16,14 +18,13 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "truffle": "5.0.31"
-  },
-  "dependencies": {
     "crypto": "^1.0.1",
-    "ethereumjs-util": "^6.1.0",
-    "in3": "^2.0.0-beta.5",
-    "in3-common": "0.0.1-beta.7",
+    "truffle": "5.0.31",
     "solidity-coverage": "0.6.4",
     "web3": "^1.2.1"
+  },
+  "dependencies": {
+    "ethereumjs-util": "^6.1.0",
+    "in3-common": "0.0.1-beta.7"
   }
 }

@@ -3,6 +3,7 @@ const utils = require('../src/utils/utils')
 const deployment = require('../src/utils/deployment')
 const in3Common = require("in3-common")
 const fs = require('fs')
+const Web3 = require('web3')
 
 const ethUtil = require('ethereumjs-util')
 
@@ -12,11 +13,11 @@ contract('BlockhashRegistry', async () => {
 
     it("should return the correct registryId", async () => {
 
-        const txBH = await deployment.deployBlockHashRegistry("http://localhost:8545")
+        const txBH = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
 
         const block = await web3.eth.getBlock("latest")
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545", txBH.contractAddress)
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider), txBH.contractAddress)
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -31,9 +32,9 @@ contract('BlockhashRegistry', async () => {
 
     it("should return the correct blockRegistry", async () => {
 
-        const txBH = await deployment.deployBlockHashRegistry("http://localhost:8545")
+        const txBH = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545", txBH.contractAddress)
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider), txBH.contractAddress)
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -43,11 +44,11 @@ contract('BlockhashRegistry', async () => {
 
     it("should return the correct timestamp of deployment", async () => {
 
-        const txBH = await deployment.deployBlockHashRegistry("http://localhost:8545")
+        const txBH = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
 
         const block = await web3.eth.getBlock("latest")
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545", txBH.contractAddress)
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider), txBH.contractAddress)
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -59,9 +60,9 @@ contract('BlockhashRegistry', async () => {
 
         const pk = await utils.createAccount(null, '1000000000')
 
-        const txBH = await deployment.deployBlockHashRegistry("http://localhost:8545")
+        const txBH = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545", txBH.contractAddress, pk)
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider), txBH.contractAddress, pk)
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -73,7 +74,7 @@ contract('BlockhashRegistry', async () => {
 
     it("should return the correct version", async () => {
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -83,7 +84,7 @@ contract('BlockhashRegistry', async () => {
     it("should be able to register a node", async () => {
 
         const pk = await utils.createAccount(null, '49000000000000000000')
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -124,7 +125,7 @@ contract('BlockhashRegistry', async () => {
     it("should enforce timeout of 1h during registering of a node", async () => {
 
         const pk = await utils.createAccount(null, '49000000000000000000')
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -165,7 +166,7 @@ contract('BlockhashRegistry', async () => {
     it("should fail trying to register a node with the same url twice", async () => {
 
         const pk = await utils.createAccount(null, '49000000000000000000')
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -208,7 +209,7 @@ contract('BlockhashRegistry', async () => {
     it("should fail trying to register a node with the same signer twice", async () => {
 
         const pk = await utils.createAccount(null, '89000000000000000000')
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -255,7 +256,7 @@ contract('BlockhashRegistry', async () => {
         const pk = await utils.createAccount(null, '49000000000000000000')
         const pk2 = await utils.createAccount(null, '49000000000000000000')
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545", null, deployKey)
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider), null, deployKey)
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -336,7 +337,7 @@ contract('BlockhashRegistry', async () => {
         const pk = await utils.createAccount(null, '49000000000000000000')
         const pk2 = await utils.createAccount(null, '49000000000000000000')
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545", null, deployKey)
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider), null, deployKey)
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -417,7 +418,7 @@ contract('BlockhashRegistry', async () => {
         const pk = await utils.createAccount(null, '49000000000000000000')
         const pk2 = await utils.createAccount(null, '49000000000000000000')
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545", null, deployKey)
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider), null, deployKey)
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -489,7 +490,7 @@ contract('BlockhashRegistry', async () => {
     it("should fail when trying to register with a too low deposit", async () => {
 
         const pk = await utils.createAccount(null, '49000000000000000000')
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -503,7 +504,7 @@ contract('BlockhashRegistry', async () => {
     it("should fail when trying to register with a too high timeout", async () => {
 
         const pk = await utils.createAccount(null, '49000000000000000000')
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -517,7 +518,7 @@ contract('BlockhashRegistry', async () => {
     it("should fail when trying to register with a too high deposit in the 1st year", async () => {
 
         const pk = await utils.createAccount(null, '51000000000000000000')
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -535,7 +536,7 @@ contract('BlockhashRegistry', async () => {
         const pk = await utils.createAccount(null, '49000000000000000000')
         const pk2 = await utils.createAccount(null, '49000000000000000000')
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545", null, deployKey)
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider), null, deployKey)
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -616,7 +617,7 @@ contract('BlockhashRegistry', async () => {
         const pk = await utils.createAccount(null, '49000000000000000000')
         const pk2 = await utils.createAccount(null, '49000000000000000000')
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545", null, deployKey)
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider), null, deployKey)
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -691,7 +692,7 @@ contract('BlockhashRegistry', async () => {
         const pk = await utils.createAccount(null, '49000000000000000000')
         const pk2 = await utils.createAccount(null, '49000000000000000000')
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545", null, deployKey)
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider), null, deployKey)
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -766,7 +767,7 @@ contract('BlockhashRegistry', async () => {
     it("should transfer the ownership of a node", async () => {
 
         const pk = await utils.createAccount(null, '49000000000000000000')
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -821,7 +822,7 @@ contract('BlockhashRegistry', async () => {
     it("should fail trying to change owner to 0x0", async () => {
 
         const pk = await utils.createAccount(null, '49000000000000000000')
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -870,7 +871,7 @@ contract('BlockhashRegistry', async () => {
     it("should fail trying to transfer the owneship while not being the owner", async () => {
 
         const pk = await utils.createAccount(null, '49000000000000000000')
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -921,7 +922,7 @@ contract('BlockhashRegistry', async () => {
     it("should update a node and also changing his url", async () => {
 
         const pk = await utils.createAccount(null, '49000000000000000000')
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -986,7 +987,7 @@ contract('BlockhashRegistry', async () => {
     it("should update a node increasing timeout and deposit", async () => {
 
         const pk = await utils.createAccount(null, '49000000000000000000')
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -1053,7 +1054,7 @@ contract('BlockhashRegistry', async () => {
         const pk = await utils.createAccount(null, '49000000000000000000')
         const nonOwer = await utils.createAccount(null, '49000000000000000000')
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -1098,7 +1099,7 @@ contract('BlockhashRegistry', async () => {
         const pk = await utils.createAccount(null, '49000000000000000000')
         const nonOwer = await utils.createAccount(null, '49000000000000000000')
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -1143,7 +1144,7 @@ contract('BlockhashRegistry', async () => {
     it("should fail updating a node when the new url is already taken", async () => {
 
         const pk = await utils.createAccount(null, '49000000000000000000')
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -1231,7 +1232,7 @@ contract('BlockhashRegistry', async () => {
 
         const signerAcc = await web3.eth.accounts.privateKeyToAccount(signerPK);
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -1277,7 +1278,7 @@ contract('BlockhashRegistry', async () => {
 
         const signerAcc = await web3.eth.accounts.privateKeyToAccount(signerPK);
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -1300,7 +1301,7 @@ contract('BlockhashRegistry', async () => {
 
         const signerAcc = await web3.eth.accounts.privateKeyToAccount(signerPK);
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -1322,7 +1323,7 @@ contract('BlockhashRegistry', async () => {
 
         const signerAcc = await web3.eth.accounts.privateKeyToAccount(signerPK);
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -1400,7 +1401,7 @@ contract('BlockhashRegistry', async () => {
 
         const signerAcc = await web3.eth.accounts.privateKeyToAccount(signerPK);
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -1461,7 +1462,7 @@ contract('BlockhashRegistry', async () => {
 
         const signerAcc = await web3.eth.accounts.privateKeyToAccount(signerPK);
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -1525,7 +1526,7 @@ contract('BlockhashRegistry', async () => {
 
         const signerAcc = await web3.eth.accounts.privateKeyToAccount(signerPK);
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -1590,7 +1591,7 @@ contract('BlockhashRegistry', async () => {
 
         const signerAcc = await web3.eth.accounts.privateKeyToAccount(signerPK);
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -1665,7 +1666,7 @@ contract('BlockhashRegistry', async () => {
 
         const signerAcc = await web3.eth.accounts.privateKeyToAccount(signerPK);
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -1731,7 +1732,7 @@ contract('BlockhashRegistry', async () => {
 
         const signerAcc = await web3.eth.accounts.privateKeyToAccount(signerPK);
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -1819,7 +1820,7 @@ contract('BlockhashRegistry', async () => {
 
         const signerAcc = await web3.eth.accounts.privateKeyToAccount(signerPK);
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -1916,7 +1917,7 @@ contract('BlockhashRegistry', async () => {
 
         const signerAcc = await web3.eth.accounts.privateKeyToAccount(signerPK);
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -1995,7 +1996,7 @@ contract('BlockhashRegistry', async () => {
         const pk = await utils.createAccount(null, '49000000000000000000')
         const pk2 = await utils.createAccount(null, '49000000000000000000')
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545", null, deployKey)
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider), null, deployKey)
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -2044,7 +2045,7 @@ contract('BlockhashRegistry', async () => {
         const pk = await utils.createAccount(null, '49000000000000000000')
         const pk2 = await utils.createAccount(null, '49000000000000000000')
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545", null, deployKey)
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider), null, deployKey)
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -2130,7 +2131,7 @@ contract('BlockhashRegistry', async () => {
         const pk = await utils.createAccount(null, '49000000000000000000')
         const pk2 = await utils.createAccount(null, '49000000000000000000')
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545", null, deployKey)
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider), null, deployKey)
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -2214,7 +2215,7 @@ contract('BlockhashRegistry', async () => {
         const pk = await utils.createAccount(null, '49000000000000000000')
         const pk2 = await utils.createAccount(null, '49000000000000000000')
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545", null, deployKey)
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider), null, deployKey)
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -2294,7 +2295,7 @@ contract('BlockhashRegistry', async () => {
     it("should allow register nodes with more then 50 ether as deposit after 1 year", async () => {
 
         const pk = await utils.createAccount(null, '51000000000000000000')
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545")
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -2337,7 +2338,7 @@ contract('BlockhashRegistry', async () => {
         const pk = await utils.createAccount(null, '49000000000000000000')
         const pk2 = await utils.createAccount(null, '49000000000000000000')
 
-        const tx = await deployment.deployNodeRegistry("http://localhost:8545", null, deployKey)
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider), null, deployKey)
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 

@@ -1,11 +1,8 @@
 const deployment = require('../src/utils/deployment')
-
+const Web3 = require("web3")
 
 module.exports = async (deployer) => {
 
-  await deployment.deployNodeRegistry("http://localhost:8545")
+  await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
-  // const deployBlockHashTx = await deployment.deployBlockHashRegistry()
-
-  // await deployment.deployNodeRegistry(null, deployBlockHashTx.contractAddress)
 };

@@ -3,6 +3,7 @@ const utils = require('../src/utils/utils')
 const deployment = require('../src/utils/deployment')
 const in3Common = require("in3-common")
 const fs = require('fs')
+const Web3 = require("web3")
 
 const BlockhashRegistry = JSON.parse(fs.readFileSync('build/contracts/BlockhashRegistry.json'))
 
@@ -15,7 +16,7 @@ contract('BlockhashRegistry', async () => {
 
         const blockBefore = await web3.eth.getBlock('latest')
 
-        const tx = await deployment.deployBlockHashRegistry("http://localhost:8545")
+        const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
 
         const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
 
@@ -29,7 +30,7 @@ contract('BlockhashRegistry', async () => {
 
         const pk = await utils.createAccount(null, '1000000000')
 
-        const tx = await deployment.deployBlockHashRegistry("http://localhost:8545")
+        const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
         const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
 
         const blockHashBeforeSave = await blockHashContract.methods.blockhashMapping(blockBefore.number).call()
@@ -45,7 +46,7 @@ contract('BlockhashRegistry', async () => {
     it("should revert when trying to save a non existing block", async () => {
         const pk = await utils.createAccount(null, '0')
 
-        const tx = await deployment.deployBlockHashRegistry("http://localhost:8545")
+        const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
         const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
 
         const futureBlockNumber = (await web3.eth.getBlockNumber() + 100)
@@ -66,7 +67,7 @@ contract('BlockhashRegistry', async () => {
 
         const pk = await utils.createAccount(null, '1000000000')
 
-        const tx = await deployment.deployBlockHashRegistry("http://localhost:8545")
+        const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
         const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
         const blockBefore = await web3.eth.getBlock('latest')
 
@@ -83,7 +84,7 @@ contract('BlockhashRegistry', async () => {
 
     it("should successfully extract parent and blockhash of a block from a private chain", async () => {
 
-        const tx = await deployment.deployBlockHashRegistry("http://localhost:8545")
+        const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
         const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
         const block = await web3.eth.getBlock('latest')
 
@@ -100,7 +101,7 @@ contract('BlockhashRegistry', async () => {
 
     it("should revert when an underflow during recreation occurs", async () => {
 
-        const tx = await deployment.deployBlockHashRegistry("http://localhost:8545")
+        const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
         const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
         const block = await web3.eth.getBlock('latest')
 
@@ -116,7 +117,7 @@ contract('BlockhashRegistry', async () => {
 
     it("should successfully extract parent and blockhash of a block from real blockchains", async () => {
 
-        const tx = await deployment.deployBlockHashRegistry("http://localhost:8545")
+        const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
         const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
 
         const realBlocks = JSON.parse(fs.readFileSync('testData/blockHeaders.json').toString('utf8'))
@@ -143,7 +144,7 @@ contract('BlockhashRegistry', async () => {
 
     it("should successfully recalculate a chain", async () => {
 
-        const tx = await deployment.deployBlockHashRegistry("http://localhost:8545")
+        const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
         const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
 
         const realBlocks = JSON.parse(fs.readFileSync('testData/blockHeaders.json').toString('utf8'))
@@ -174,7 +175,7 @@ contract('BlockhashRegistry', async () => {
 
     it("should fail recalculating a chain with a wrong order of blocks", async () => {
 
-        const tx = await deployment.deployBlockHashRegistry("http://localhost:8545")
+        const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
         const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
 
         const realBlocks = JSON.parse(fs.readFileSync('testData/blockHeaders.json').toString('utf8'))
@@ -207,7 +208,7 @@ contract('BlockhashRegistry', async () => {
 
     it("should fail recalculating a chain when an underflow occurs", async () => {
 
-        const tx = await deployment.deployBlockHashRegistry("http://localhost:8545")
+        const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
         const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
 
         const realBlocks = JSON.parse(fs.readFileSync('testData/blockHeaders.json').toString('utf8'))
@@ -240,7 +241,7 @@ contract('BlockhashRegistry', async () => {
     it("should find an existing block using searchForAvailableBlock and block is in range", async () => {
 
         const block = await web3.eth.getBlock('latest')
-        const tx = await deployment.deployBlockHashRegistry("http://localhost:8545")
+        const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
         const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
 
         const res = await blockHashContract.methods.searchForAvailableBlock(block.number - 10, 20).call()
@@ -251,7 +252,7 @@ contract('BlockhashRegistry', async () => {
     it("should return 0 when not finding a block", async () => {
 
         const block = await web3.eth.getBlock('latest')
-        const tx = await deployment.deployBlockHashRegistry("http://localhost:8545")
+        const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
         const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
 
         const res = await blockHashContract.methods.searchForAvailableBlock(block.number - 50, 20).call()
@@ -275,7 +276,7 @@ contract('BlockhashRegistry', async () => {
 
         const pk = await utils.createAccount(null, '1000000000')
 
-        const tx = await deployment.deployBlockHashRegistry("http://localhost:8545")
+        const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
         const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
         const blockNumberToStore = await web3.eth.getBlockNumber() - 256
 
@@ -291,7 +292,7 @@ contract('BlockhashRegistry', async () => {
         const pk = await utils.createAccount(null, '1000000000')
 
         const block = await web3.eth.getBlock('latest')
-        const tx = await deployment.deployBlockHashRegistry("http://localhost:8545")
+        const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
         const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
 
         let blockheaderArray = [];
@@ -317,7 +318,7 @@ contract('BlockhashRegistry', async () => {
     it("should fail recreating blockheaders when there is no snapshot arround", async () => {
         const pk = await utils.createAccount(null, '1000000000')
 
-        const tx = await deployment.deployBlockHashRegistry("http://localhost:8545")
+        const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
         const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
         const block = await web3.eth.getBlock('latest')
 
@@ -342,7 +343,7 @@ contract('BlockhashRegistry', async () => {
         const pk = await utils.createAccount(null, '1000000000')
 
         const block = await web3.eth.getBlock('latest')
-        const tx = await deployment.deployBlockHashRegistry("http://localhost:8545")
+        const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
         const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
 
         let blockheaderArray = [];
