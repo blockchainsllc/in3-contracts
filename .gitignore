@@ -19,6 +19,12 @@ lib-cov
 # Coverage directory used by tools like istanbul
 coverage
 
+# solidity coverage files
+coverage.json
+scTopics
+allFiredEvents
+coverageEnv
+
 # nyc test coverage
 .nyc_output
 
@@ -67,3 +73,6 @@ dev
 
 #npmrc
 .npmrc
+
+# truffle build file
+build
