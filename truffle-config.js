@@ -57,7 +57,7 @@ module.exports = {
       from: "00a329c0648769a73afac7f9381e08fb43dbea72",
     },
     CI: {
-      host: "http://blockchainclient:8545",     // Localhost (default: none)
+      host: "http://blockchainclient",     // Localhost (default: none)
       port: 8545,            // Standard Ethereum port (default: none)
       network_id: "*",       // Any network (default: none)
       gas: 0xfffffffffff, // <-- Use this high gas value
