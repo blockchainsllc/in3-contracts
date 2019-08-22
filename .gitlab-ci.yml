@@ -41,7 +41,9 @@ test-parity:
   script:
     - sh /prepare.sh
     - npm install
-    - npm run testCI
+   - ./node_modules/truffle/build/cli.bundled.js compile
+   - ./node_modules/truffle/build/cli.bundled.js migrate --network CI
+   - ./node_modules/truffle/build/cli.bundled.js test --network CI
 
   artifacts:
     name: "test-reports-$CI_JOB_NAME"
