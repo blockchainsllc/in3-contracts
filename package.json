@@ -31,6 +31,6 @@
   },
   "dependencies": {
     "ethereumjs-util": "^6.1.0",
-    "in3-common": "0.0.1-beta.7",
+    "in3-common": "0.0.1-beta.7"
   }
 }
