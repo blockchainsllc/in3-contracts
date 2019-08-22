@@ -447,6 +447,7 @@ contract NodeRegistry {
             ui.used = true;
             ui.signer = msg.sender;
             urlIndex[newURl] = ui;
+            node.url = _url;
         }
 
         if (msg.value > 0) {

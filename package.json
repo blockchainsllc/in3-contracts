@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "crypto": "^1.0.1",
+    "ethereumjs-util": "^6.1.0",
     "in3": "^2.0.0-beta.5",
     "in3-common": "0.0.1-beta.7",
     "solidity-coverage": "0.6.4",
