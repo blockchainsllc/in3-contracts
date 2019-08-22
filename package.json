@@ -24,12 +24,13 @@
     "crypto": "^1.0.1",
     "ethlint": "^1.2.4",
     "truffle": "5.0.31",
+    "solc": "0.5.10",
     "solhint": "^2.1.0",
     "solidity-coverage": "0.6.4",
     "web3": "^1.2.1"
   },
   "dependencies": {
     "ethereumjs-util": "^6.1.0",
-    "in3-common": "0.0.1-beta.7"
+    "in3-common": "0.0.1-beta.7",
   }
 }
