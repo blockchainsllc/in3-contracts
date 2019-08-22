@@ -42,7 +42,7 @@ test-parity:
   script:
     - sh /prepare.sh
     - npm install
-    - truffle test
+    - npm test
 
   artifacts:
     name: "test-reports-$CI_JOB_NAME"
