@@ -29,7 +29,7 @@ test-parity:
   tags:
     - short-jobs
   services:
-    - docker:dind
+    - docker:18-dind
     - name: docker.slock.it/core-technology/parity-timemachine:master
       alias: blockchainclient
   script:
