@@ -33,7 +33,8 @@ test-parity:
     
   script:
     - sh /prepare.sh
-    - apk add docker-cli
+    - export DOCKER_HOST=tcp://dind:2375
+    - apk add docker
     - docker pull ethereum/solc:0.5.10 
     - npm install
     - ./node_modules/truffle/build/cli.bundled.js compile
