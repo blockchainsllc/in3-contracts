@@ -33,9 +33,9 @@ test-parity:
     
   script:
     - sh /prepare.sh
-    - npm install
-    - apk add docker
+    - apk add docker-cli
     - docker pull ethereum/solc:0.5.10 
+    - npm install
     - ./node_modules/truffle/build/cli.bundled.js compile
     - ./node_modules/truffle/build/cli.bundled.js migrate --network CI
     - ./node_modules/truffle/build/cli.bundled.js test --network CI
