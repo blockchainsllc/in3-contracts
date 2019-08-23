@@ -31,6 +31,7 @@ test-parity:
   variables:
     IPFS_URL: http://ipfs:5001
   services:
+    - docker:dind
     - name: jbenet/go-ipfs:latest
       command:
         - daemon
@@ -41,6 +42,7 @@ test-parity:
   script:
     - sh /prepare.sh
     - npm install
+    - apk add docker
     - ./node_modules/truffle/build/cli.bundled.js compile
     - ./node_modules/truffle/build/cli.bundled.js migrate --network CI
     - ./node_modules/truffle/build/cli.bundled.js test --network CI
