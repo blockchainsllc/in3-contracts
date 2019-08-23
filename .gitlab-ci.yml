@@ -28,21 +28,15 @@ test-parity:
   stage: test
   tags:
     - short-jobs
-  variables:
-    IPFS_URL: http://ipfs:5001
   services:
     - docker:dind
-    - name: jbenet/go-ipfs:latest
-      command:
-        - daemon
-        - --offline
-      alias: ipfs
     - name: docker.slock.it/core-technology/parity-timemachine:master
       alias: blockchainclient
   script:
     - sh /prepare.sh
     - npm install
     - apk add docker
+    - docker pull ethereum/solc:0.5.10 
     - ./node_modules/truffle/build/cli.bundled.js compile
     - ./node_modules/truffle/build/cli.bundled.js migrate --network CI
     - ./node_modules/truffle/build/cli.bundled.js test --network CI
