@@ -3,37 +3,18 @@ variables:
   COMMIT_IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
   RELEASE_IMAGE_TAG: $CI_REGISTRY_IMAGE:latest
 stages:
-  - lint
   - test
-
-lint-contracts-solium:
-  stage: lint
-  tags:
-    - short-jobs
-  script: 
-    - sh /prepare.sh
-    - npm i ethlint
-    - npm run lint:solium
-
-lint-contracts-solhint:
-  stage: lint
-  tags:
-    - short-jobs
-  script: 
-    - sh /prepare.sh
-    - npm i solhint
-    - npm run lint:solhint
 
 test-parity:
   stage: test
   tags:
     - short-jobs
   services:
-    - docker:18-dind
+    - docker:dind
     
   script:
     - sh /prepare.sh
-    - export DOCKER_HOST=tcp://dind:2375
+    - export DOCKER_HOST=tcp://docker:2375
     - apk add docker
     - docker pull ethereum/solc:0.5.10 
     - npm install
