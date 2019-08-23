@@ -30,8 +30,7 @@ test-parity:
     - short-jobs
   services:
     - docker:18-dind
-    - name: docker.slock.it/core-technology/parity-timemachine:master
-      alias: blockchainclient
+    
   script:
     - sh /prepare.sh
     - npm install
