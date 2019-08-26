@@ -34,6 +34,7 @@ compile-contracts:
     - docker:dind
   image: docker.slock.it/build-images/deployment
   script:
+    - sh /prepare.sh
     - npm run solcCompile 
   artifacts:
     paths:
