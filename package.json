@@ -12,7 +12,8 @@
     "test": "./node_modules/.bin/truffle test",
     "testCI": "./node_modules/.bin/truffle test --network CI",
     "lint:solium": "node node_modules/ethlint/bin/solium.js -d contracts/",
-    "lint:solhint": "node node_modules/solhint/solhint.js \"contracts/**/*.sol\" -w 0"
+    "lint:solhint": "node node_modules/solhint/solhint.js \"contracts/**/*.sol\" -w 0",
+    "coverage": "npx solidity-coverage"
   },
   "repository": {
     "type": "git",
