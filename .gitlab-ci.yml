@@ -4,8 +4,10 @@ variables:
   RELEASE_IMAGE_TAG: $CI_REGISTRY_IMAGE:latest
 stages:
   - lint
+  - build
   - test
-
+  - deploy
+  
 lint-contracts-solium:
   stage: lint
   tags:
@@ -23,6 +25,19 @@ lint-contracts-solhint:
     - sh /prepare.sh
     - npm i solhint
     - npm run lint:solhint
+
+compile-contracts:
+  stage: build
+  tags:
+    - short-jobs
+  services:
+    - docker:dind
+  image: docker.slock.it/build-images/deployment
+  script:
+    - npm run solcCompile 
+  artifacts:
+    paths:
+      - contracts/contracts.json
 
 test-parity:
   stage: test
@@ -46,5 +61,21 @@ test-coverage:
     - sh /prepare.sh
     - npm install
     - npm run coverage
+
+push-to-slockit-registry:
+  stage: deploy
+  tags:
+    - short-jobs
+  only:
+    - '/^v[0-9]*\.[0-9]*\.[0-9]*-?.*$/'
+  except:
+    - branches
+  dependencies:
+    - compile-contracts
+  script:
+    - sh /prepare.sh
+    - npm --no-git-tag-version -f version $CI_COMMIT_TAG --allow-same-version
+    - npm publish
+
 
 
