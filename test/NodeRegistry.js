@@ -9,7 +9,7 @@ const ethUtil = require('ethereumjs-util')
 
 const BlockhashRegistry = JSON.parse(fs.readFileSync('build/contracts/BlockhashRegistry.json'))
 
-contract('BlockhashRegistry', async () => {
+contract('NodeRegistry', async () => {
 
     it("should return the correct registryId", async () => {
 
