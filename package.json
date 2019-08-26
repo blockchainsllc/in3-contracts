@@ -13,7 +13,8 @@
     "testCI": "./node_modules/.bin/truffle test --network CI",
     "lint:solium": "node node_modules/ethlint/bin/solium.js -d contracts/",
     "lint:solhint": "node node_modules/solhint/solhint.js \"contracts/**/*.sol\" -w 0",
-    "coverage": "npx solidity-coverage"
+    "coverage": "npx solidity-coverage",
+    "solcCompile": "docker run --rm -v $(pwd)/contracts:/contracts ethereum/solc:0.5.10 --optimize --combined-json abi,bin,bin-runtime,compact-format,hashes,interface,metadata,srcmap-runtime /contracts/NodeRegistry.sol /contracts/BlockhashRegistry.sol > contracts/contracts.json"
   },
   "repository": {
     "type": "git",

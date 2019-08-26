@@ -76,3 +76,6 @@ dev
 
 # truffle build file
 build
+
+# compiled smart contract file
+contracts/contracts.json
