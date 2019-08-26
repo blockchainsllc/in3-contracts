@@ -92,10 +92,10 @@ contract('BlockhashRegistry', async () => {
 
         const txData = nodeRegistry.methods.registerNode("#1", 65000, 3700, 2000).encodeABI()
 
-        const block = await web3.eth.getBlock("latest")
 
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
         assert.strictEqual('1', await nodeRegistry.methods.totalNodes().call())
+        const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistry.methods.nodes(0).call()
 

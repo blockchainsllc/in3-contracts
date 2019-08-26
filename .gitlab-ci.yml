@@ -3,26 +3,48 @@ variables:
   COMMIT_IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
   RELEASE_IMAGE_TAG: $CI_REGISTRY_IMAGE:latest
 stages:
+  - lint
   - test
+
+lint-contracts-solium:
+  stage: lint
+  tags:
+    - short-jobs
+  script: 
+    - sh /prepare.sh
+    - npm i ethlint
+    - npm run lint:solium
+
+lint-contracts-solhint:
+  stage: lint
+  tags:
+    - short-jobs
+  script: 
+    - sh /prepare.sh
+    - npm i solhint
+    - npm run lint:solhint
 
 test-parity:
   stage: test
   tags:
     - short-jobs
   services:
-    - docker:dind
-    
+    - name: docker.slock.it/core-technology/parity-timemachine:master
+      alias: blockchainclient
   script:
     - sh /prepare.sh
-    - export DOCKER_HOST=tcp://docker:2375
-    - apk add docker
-    - docker pull ethereum/solc:0.5.10 
     - npm install
-    - ./node_modules/truffle/build/cli.bundled.js compile
+    - npm run compile
     - ./node_modules/truffle/build/cli.bundled.js migrate --network CI
     - ./node_modules/truffle/build/cli.bundled.js test --network CI
 
-  artifacts:
-    name: "test-reports-$CI_JOB_NAME"
-    paths:
-      - test/report
+test-coverage:
+  stage: test
+  tags:
+    - short-jobs
+  script:
+    - sh /prepare.sh
+    - npm install
+    - npm run coverage
+
+
