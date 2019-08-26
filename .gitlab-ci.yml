@@ -34,8 +34,7 @@ compile-contracts:
     - docker:dind
   image: docker.slock.it/build-images/deployment
   script:
-    - sh /prepare.sh
-    - npm run solcCompile 
+    - docker run --rm -v $(pwd)/contracts:/contracts ethereum/solc:0.5.10 --optimize --combined-json abi,bin,bin-runtime,compact-format,hashes,interface,metadata,srcmap-runtime /contracts/NodeRegistry.sol /contracts/BlockhashRegistry.sol > contracts/contracts.json
   artifacts:
     paths:
       - contracts/contracts.json
