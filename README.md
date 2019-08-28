@@ -8,16 +8,26 @@ Using this technique an in3-client has some kind of insurance that he will recei
 
 # Building
 
-In order to compile the contracts, run 
+In order to compile the contracts, run either  
 ```bash
 docker run --rm -v $(pwd)/contracts:/contracts ethereum/solc:0.5.10 --optimize --combined-json abi,bin,bin-runtime,compact-format,hashes,interface,metadata,srcmap-runtime /contracts/NodeRegistry.sol /contracts/BlockhashRegistry.sol > contracts/contracts.json
 ```
-
+or 
+``` 
+truffle compile
+```
 # Testing
 
-***to be migrated to this repository***
+The test can be run by using the command `npm test`. However, the tests for the in3-node are using the `evm_increaseTime` command that regular ethereum-clients do not support, but is needed in order to test how the contract react to certain dates in the future (e.g. 1 year after deployment). For this, there is a special docker container using a reverse proxy in combination with libfaketime (see https://github.com/wolfcw/libfaketime) allowing the change of time for parities. 
 
-The test can be run by using the command `npm test`. However, the tests for the in3-node are using the `evm_increaseTime` command that regular ethereum-clients do not support, but is needed in order to test how the contract react to certain dates in the future (e.g. 1 year after deployment). For this, there is a special docker container using a reverse proxy in combination with libfaketime (see https://github.com/wolfcw/libfaketime) allowing the change of time for parities. Nevertheless, the test should also run using a regular geth-client. 
+In addition, the tests will also run using special configured ganache that was started using the command `npm run ganache`.
+
+# Coverage 
+
+The command `npm run coverage` can be used to run all the tests in order to check for code coverage. 
+
+# Deployment
+The easiest way to deploy the contracts is running the command `npm run migrate`. This command will use raw-transactions to deploy both contracts. However, for testing purposes it will use the privateKey of the parity developer account. 
 
 # Contracts 
 
