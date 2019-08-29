@@ -46,9 +46,8 @@ contract('NodeRegistry', async () => {
 
         const txBH = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
 
-        const block = await web3.eth.getBlock("latest")
-
         const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider), txBH.contractAddress)
+        const block = await web3.eth.getBlock("latest")
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
@@ -174,9 +173,9 @@ contract('NodeRegistry', async () => {
 
         const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
 
+        await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
         const block = await web3.eth.getBlock("latest")
 
-        await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
         assert.strictEqual('1', await nodeRegistry.methods.totalNodes().call())
 
         const registeredNode = await nodeRegistry.methods.nodes(0).call()
