@@ -435,24 +435,23 @@ contract NodeRegistry {
 
         In3Node storage node = nodes[si.index];
 
-        bytes32 newURl = keccak256(bytes(_url));
+        bytes32 newURL = keccak256(bytes(_url));
+        bytes32 oldURL = keccak256(bytes(node.url));
 
-            // the url got changed
-        if (newURl != keccak256(bytes(node.url))) {
-
-            // deleting the old entry
+        // the url got changed
+        if (newURL != oldURL) {
 
             // make sure the new url is not already in use
-            require(!urlIndex[newURl].used, "url is already in use");
+            require(!urlIndex[newURL].used, "url is already in use");
 
             UrlInformation memory ui;
             ui.used = true;
             ui.signer = node.signer;
-            urlIndex[newURl] = ui;
+            urlIndex[newURL] = ui;
             node.url = _url;
 
-            delete urlIndex[keccak256(bytes(node.url))];
-
+            // deleting the old entry
+            delete urlIndex[oldURL];
         }
 
         if (msg.value > 0) {
