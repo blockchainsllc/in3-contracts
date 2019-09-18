@@ -1,6 +1,6 @@
 const Web3 = require("web3")
 const fs = require("fs")
-const util = require("./util")
+const util = require("../src/utils/utils")
 
 const deployContract = async (web3, byteCode, privateKey) => {
 

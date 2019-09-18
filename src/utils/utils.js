@@ -124,16 +124,13 @@ const signHash = (pk, msgHash) => {
 
     return {
         ...s,
-        address: getAddress(pk),
-        msgHash: toHex(msgHash, 32),
-        r: toHex(s.r),
-        s: toHex(s.s),
+        address: in3Common.util.getAddress(pk),
+        msgHash: in3Common.util.toHex(msgHash, 32),
+        r: in3Common.util.toHex(s.r),
+        s: in3Common.util.toHex(s.s),
         v: s.v,
-        signatureBytes: toHex(s.r) + toHex(s.s).substr(2) + toHex(s.v).substr(2)
+        signatureBytes: in3Common.util.toHex(s.r) + in3Common.util.toHex(s.s).substr(2) + in3Common.util.toHex(s.v).substr(2)
     }
 }
-
-
-
 
 module.exports = { createAccount, handleTx, signForRegister, signBlock, createConvictHash, increaseTime, signHash }
