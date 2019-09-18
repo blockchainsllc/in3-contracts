@@ -117,10 +117,23 @@ const increaseTime = async (web3, secondsToIncrease) => {
                 }
             })
     })
+}
 
+const signHash = (pk, msgHash) => {
+    const s = ethUtil.ecsign(in3Common.util.toBuffer(msgHash, 32), in3Common.util.toBuffer(pk, 32))
+
+    return {
+        ...s,
+        address: getAddress(pk),
+        msgHash: toHex(msgHash, 32),
+        r: toHex(s.r),
+        s: toHex(s.s),
+        v: s.v,
+        signatureBytes: toHex(s.r) + toHex(s.s).substr(2) + toHex(s.v).substr(2)
+    }
 }
 
 
 
 
-module.exports = { createAccount, handleTx, signForRegister, signBlock, createConvictHash, increaseTime }
+module.exports = { createAccount, handleTx, signForRegister, signBlock, createConvictHash, increaseTime, signHash }

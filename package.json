@@ -35,5 +35,8 @@
     "solidity-coverage": "0.6.4",
     "truffle": "5.0.31",
     "web3": "^1.2.1"
+  },
+  "dependencies": {
+    "ethereumjs-utils": "^5.2.5"
   }
 }
