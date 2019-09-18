@@ -117,7 +117,7 @@ contract NodeRegistry {
     uint constant internal YEAR_DEFINITION = 1 days * 365;
 
     /// limit for ether per node in the 1st year
-    uint constant internal MAX_ETHER_LIMIT = 50 ether;
+    uint constant public MAX_ETHER_LIMIT = 50 ether;
 
     /// version: major minor fork(000) date(yyyy/mm/dd)
     uint constant public VERSION = 12300020190709;
