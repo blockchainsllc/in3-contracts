@@ -119,6 +119,9 @@ contract NodeRegistry {
     /// limit for ether per node in the 1st year
     uint constant public MAX_ETHER_LIMIT = 50 ether;
 
+    /// min deposit required for registering a node
+    uint constant public MIN_DEPOSIT = 10 finney;
+
     /// version: major minor fork(000) date(yyyy/mm/dd)
     uint constant public VERSION = 12300020190709;
 
@@ -540,7 +543,7 @@ contract NodeRegistry {
     {
 
         // enforcing a minimum deposit
-        require(_deposit >= 10 finney, "not enough deposit");
+        require(_deposit >= MIN_DEPOSIT, "not enough deposit");
 
         _checkNodePropertiesInternal(_deposit, _timeout);
 
