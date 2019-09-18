@@ -1239,7 +1239,6 @@ contract('NodeRegistry', async () => {
 
         const signature = utils.signForRegister("#1", 65000, 3700, 2000, ethAcc.address, signerPK)
 
-
         const txData = nodeRegistry.methods.registerNodeFor("#1", 65000, 3700, signerAcc.address, 2000, signature.v, signature.r, signature.s).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
         assert.strictEqual('1', await nodeRegistry.methods.totalNodes().call())
@@ -1311,6 +1310,77 @@ contract('NodeRegistry', async () => {
 
         const txData = nodeRegistry.methods.registerNodeFor("#1", 65000, 3700, signerAcc.address, 2000, signature.v, signature.r, signature.s).encodeABI()
         assert.isFalse(await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk).catch(_ => false))
+    })
+
+    it("should update a registeredNodeFor-node and also changing his url ", async () => {
+
+        const pk = await utils.createAccount(null, '49000000000000000000')
+        const ethAcc = await web3.eth.accounts.privateKeyToAccount(pk);
+
+        const signerPK = await utils.createAccount()
+
+        const signerAcc = await web3.eth.accounts.privateKeyToAccount(signerPK);
+
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
+
+        const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
+
+        assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
+
+        const signature = utils.signForRegister("#1", 65000, 3700, 2000, ethAcc.address, signerPK)
+
+        const txData = nodeRegistry.methods.registerNodeFor("#1", 65000, 3700, signerAcc.address, 2000, signature.v, signature.r, signature.s).encodeABI()
+        await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
+
+        assert.strictEqual('1', await nodeRegistry.methods.totalNodes().call())
+        const block = await web3.eth.getBlock("latest")
+
+        const registeredNode = await nodeRegistry.methods.nodes(0).call()
+        assert.strictEqual(registeredNode.url, "#1")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.timeout, '3700')
+        assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
+        assert.strictEqual(registeredNode.props, '65000')
+        assert.strictEqual(registeredNode.signer, signerAcc.address)
+        assert.strictEqual(registeredNode.weight, '2000')
+
+        const calcHash = ethUtil.keccak(
+            Buffer.concat([
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.uint64('3700'),
+                in3Common.serialize.uint64(block.timestamp),
+                in3Common.util.toBuffer('65000', 16),
+                in3Common.serialize.address(signerAcc.address),
+                in3Common.serialize.bytes('#1')
+            ]))
+
+        assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
+
+        const txDataUpdate = nodeRegistry.methods.updateNode(signerAcc.address, "abc", 32000, 0, 4000).encodeABI()
+        await utils.handleTx({ to: tx.contractAddress, data: txDataUpdate }, pk)
+
+        const registeredNodeUpdated = await nodeRegistry.methods.nodes(0).call()
+
+        assert.strictEqual(registeredNodeUpdated.url, "abc")
+        assert.strictEqual(registeredNodeUpdated.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNodeUpdated.timeout, '3700')
+        assert.strictEqual(registeredNodeUpdated.registerTime, '' + block.timestamp)
+        assert.strictEqual(registeredNodeUpdated.props, '32000')
+        assert.strictEqual(registeredNodeUpdated.signer, signerAcc.address)
+        assert.strictEqual(registeredNodeUpdated.weight, '4000')
+
+        const calcHashUpdated = ethUtil.keccak(
+            Buffer.concat([
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.uint64('3700'),
+                in3Common.serialize.uint64(block.timestamp),
+                in3Common.util.toBuffer('32000', 16),
+                in3Common.serialize.address(signerAcc.address),
+                in3Common.serialize.bytes('abc')
+            ]))
+
+        assert.strictEqual(registeredNodeUpdated.proofHash, "0x" + calcHashUpdated.toString('hex'))
+
     })
 
     it("should successfully convict and revealConvict and a block within 256 blocks", async () => {

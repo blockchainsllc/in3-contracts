@@ -437,20 +437,22 @@ contract NodeRegistry {
 
         bytes32 newURl = keccak256(bytes(_url));
 
-        // the url got changed
+            // the url got changed
         if (newURl != keccak256(bytes(node.url))) {
 
             // deleting the old entry
-            delete urlIndex[keccak256(bytes(node.url))];
 
             // make sure the new url is not already in use
             require(!urlIndex[newURl].used, "url is already in use");
 
             UrlInformation memory ui;
             ui.used = true;
-            ui.signer = msg.sender;
+            ui.signer = node.signer;
             urlIndex[newURl] = ui;
             node.url = _url;
+
+            delete urlIndex[keccak256(bytes(node.url))];
+
         }
 
         if (msg.value > 0) {
