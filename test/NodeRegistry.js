@@ -867,7 +867,7 @@ contract('NodeRegistry', async () => {
 
     })
 
-    it("should fail trying to transfer the owneship while not being the owner", async () => {
+    it("should fail trying to transfer the ownership while not being the owner", async () => {
 
         const pk = await utils.createAccount(null, '49000000000000000000')
         const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
@@ -1436,8 +1436,12 @@ contract('NodeRegistry', async () => {
 
         // convicting
         const convictHash = utils.createConvictHash(signedBlock.blockHash, signerAcc.address, signedBlock.v, signedBlock.r, signedBlock.s)
-        const convictData = nodeRegistry.methods.convict(block.number, "0x" + convictHash.toString('hex')).encodeABI()
+
+        assert.strictEqual("0", await nodeRegistry.methods.getConvictInfoLengthForAccount(signerAcc.address).call())
+
+        const convictData = nodeRegistry.methods.convict("0x" + convictHash.toString('hex')).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: convictData }, signerPK)
+        assert.strictEqual("1", await nodeRegistry.methods.getConvictInfoLengthForAccount(signerAcc.address).call())
 
         // creating some blocks
         await utils.createAccount(null, '1')
@@ -1445,7 +1449,7 @@ contract('NodeRegistry', async () => {
 
         const balanceSenderBefore = await web3.eth.getBalance(signerAcc.address)
 
-        const revealConvictData = nodeRegistry.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s).encodeABI()
+        const revealConvictData = nodeRegistry.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s, 0).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: revealConvictData }, signerPK)
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
@@ -1514,10 +1518,10 @@ contract('NodeRegistry', async () => {
 
         // convicting
         const convictHash = utils.createConvictHash(signedBlock.blockHash, signerAcc.address, signedBlock.v, signedBlock.r, signedBlock.s)
-        const convictData = nodeRegistry.methods.convict(block.number, "0x" + convictHash.toString('hex')).encodeABI()
+        const convictData = nodeRegistry.methods.convict("0x" + convictHash.toString('hex')).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: convictData }, signerPK)
 
-        const revealConvictData = nodeRegistry.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s).encodeABI()
+        const revealConvictData = nodeRegistry.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s, 0).encodeABI()
         assert.isFalse(await utils.handleTx({ to: tx.contractAddress, data: revealConvictData }, signerPK).catch(_ => false))
 
     })
@@ -1575,14 +1579,14 @@ contract('NodeRegistry', async () => {
 
         // convicting
         const convictHash = utils.createConvictHash(signedBlock.blockHash, signerAcc.address, signedBlock.v, signedBlock.s, signedBlock.s)
-        const convictData = nodeRegistry.methods.convict(block.number, "0x" + convictHash.toString('hex')).encodeABI()
+        const convictData = nodeRegistry.methods.convict("0x" + convictHash.toString('hex')).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: convictData }, signerPK)
 
         // creating some blocks
         await utils.createAccount(null, '1')
         await utils.createAccount(null, '1')
 
-        const revealConvictData = nodeRegistry.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s).encodeABI()
+        const revealConvictData = nodeRegistry.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s, 0).encodeABI()
         assert.isFalse(await utils.handleTx({ to: tx.contractAddress, data: revealConvictData }, signerPK).catch(_ => false))
     })
 
@@ -1639,14 +1643,14 @@ contract('NodeRegistry', async () => {
 
         // convicting
         const convictHash = utils.createConvictHash(signedBlock.blockHash, signerAcc.address, signedBlock.v, signedBlock.r, signedBlock.s)
-        const convictData = nodeRegistry.methods.convict(block.number, "0x" + convictHash.toString('hex')).encodeABI()
+        const convictData = nodeRegistry.methods.convict("0x" + convictHash.toString('hex')).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: convictData }, signerPK)
 
         // creating some blocks
         await utils.createAccount(null, '1')
         await utils.createAccount(null, '1')
 
-        const revealConvictData = nodeRegistry.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s).encodeABI()
+        const revealConvictData = nodeRegistry.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s, 0).encodeABI()
         assert.isFalse(await utils.handleTx({ to: tx.contractAddress, data: revealConvictData }, signerPK).catch(_ => false))
     })
 
@@ -1704,14 +1708,14 @@ contract('NodeRegistry', async () => {
 
         // convicting
         const convictHash = utils.createConvictHash(signedBlock.blockHash, signerAcc.address, signedBlock.v, signedBlock.r, signedBlock.s)
-        const convictData = nodeRegistry.methods.convict(block.number, "0x" + convictHash.toString('hex')).encodeABI()
+        const convictData = nodeRegistry.methods.convict("0x" + convictHash.toString('hex')).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: convictData }, signerPK)
 
         // creating some blocks
         await utils.createAccount(null, '1')
         await utils.createAccount(null, '1')
 
-        const revealConvictData = nodeRegistry.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s).encodeABI()
+        const revealConvictData = nodeRegistry.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s, 0).encodeABI()
         assert.isFalse(await utils.handleTx({ to: tx.contractAddress, data: revealConvictData }, signerPK).catch(_ => false))
     })
 
@@ -1781,14 +1785,14 @@ contract('NodeRegistry', async () => {
 
         // convicting
         const convictHash = utils.createConvictHash(signedBlock.blockHash, signerAcc.address, signedBlock.v, signedBlock.r, signedBlock.s)
-        const convictData = nodeRegistry.methods.convict(signedBlock.block, "0x" + convictHash.toString('hex')).encodeABI()
+        const convictData = nodeRegistry.methods.convict("0x" + convictHash.toString('hex')).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: convictData }, signerPK)
 
         // creating some blocks
         await utils.createAccount(null, '1')
         await utils.createAccount(null, '1')
 
-        const revealConvictData = nodeRegistry.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s).encodeABI()
+        const revealConvictData = nodeRegistry.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s, 0).encodeABI()
         assert.isFalse(await utils.handleTx({ to: tx.contractAddress, data: revealConvictData }, signerPK).catch(_ => false))
     })
 
@@ -1847,7 +1851,10 @@ contract('NodeRegistry', async () => {
 
         // convicting
         const convictHash = utils.createConvictHash(signedBlock.blockHash, signerAcc.address, signedBlock.v, signedBlock.r, signedBlock.s)
-        const convictData = nodeRegistry.methods.convict(signedBlock.block, "0x" + convictHash.toString('hex')).encodeABI()
+        const convictData = nodeRegistry.methods.convict("0x" + convictHash.toString('hex')).encodeABI()
+        await utils.handleTx({ to: tx.contractAddress, data: convictData }, signerPK)
+
+        // sending convict twice to also test using a different index
         await utils.handleTx({ to: tx.contractAddress, data: convictData }, signerPK)
 
         const blockHashRegistryAddress = await nodeRegistry.methods.blockRegistry().call()
@@ -1876,7 +1883,7 @@ contract('NodeRegistry', async () => {
         const txDataRecreate = blockhashRegistry.methods.recreateBlockheaders(startNumber, blockheaderArray).encodeABI()
         await utils.handleTx({ to: blockHashRegistryAddress, data: txDataRecreate }, signerPK)
 
-        const revealConvictData = nodeRegistry.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s).encodeABI()
+        const revealConvictData = nodeRegistry.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s, 1).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: revealConvictData }, signerPK)
     })
 
@@ -1933,7 +1940,7 @@ contract('NodeRegistry', async () => {
 
         // convicting
         const convictHash = utils.createConvictHash(signedBlock.blockHash, signerAcc.address, signedBlock.v, signedBlock.r, signedBlock.s)
-        const convictData = nodeRegistry.methods.convict(block.number, "0x" + convictHash.toString('hex')).encodeABI()
+        const convictData = nodeRegistry.methods.convict("0x" + convictHash.toString('hex')).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: convictData }, signerPK)
 
         // creating some blocks
@@ -1942,7 +1949,7 @@ contract('NodeRegistry', async () => {
 
         const balanceSenderBefore = await web3.eth.getBalance(signerAcc.address)
 
-        const revealConvictData = nodeRegistry.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s).encodeABI()
+        const revealConvictData = nodeRegistry.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s, 0).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: revealConvictData }, signerPK)
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
@@ -1962,13 +1969,13 @@ contract('NodeRegistry', async () => {
         const convictSecondAcc = await web3.eth.accounts.privateKeyToAccount(convictSecond);
         // convicting
         const convictHashTwo = utils.createConvictHash(signedBlock.blockHash, convictSecondAcc.address, signedBlock.v, signedBlock.r, signedBlock.s)
-        const convictDataTwo = nodeRegistry.methods.convict(block.number, "0x" + convictHashTwo.toString('hex')).encodeABI()
+        const convictDataTwo = nodeRegistry.methods.convict("0x" + convictHashTwo.toString('hex')).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: convictDataTwo }, convictSecond)
 
         await utils.createAccount(null, '1')
         await utils.createAccount(null, '1')
 
-        const revealConvictDataTwo = nodeRegistry.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s).encodeABI()
+        const revealConvictDataTwo = nodeRegistry.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s, 0).encodeABI()
 
 
         assert.isFalse(await utils.handleTx({ to: tx.contractAddress, data: revealConvictDataTwo }, convictSecond).catch(_ => {
@@ -2030,7 +2037,7 @@ contract('NodeRegistry', async () => {
 
         // convicting
         const convictHash = utils.createConvictHash(signedBlock.blockHash, signerAcc.address, signedBlock.v, signedBlock.r, signedBlock.s)
-        const convictData = nodeRegistry.methods.convict(block.number, "0x" + convictHash.toString('hex')).encodeABI()
+        const convictData = nodeRegistry.methods.convict("0x" + convictHash.toString('hex')).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: convictData }, signerPK)
 
         const unregisterData = nodeRegistry.methods.unregisteringNode(ethAcc.address).encodeABI()
@@ -2042,7 +2049,7 @@ contract('NodeRegistry', async () => {
 
         const balanceSenderBefore = await web3.eth.getBalance(signerAcc.address)
 
-        const revealConvictData = nodeRegistry.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s).encodeABI()
+        const revealConvictData = nodeRegistry.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s, 0).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: revealConvictData }, signerPK)
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
@@ -2477,5 +2484,6 @@ contract('NodeRegistry', async () => {
         assert.isFalse(await utils.handleTx({ to: tx.contractAddress, data: txDataRemoval }, deployKey).catch(_ => false))
 
     })
+
 
 })

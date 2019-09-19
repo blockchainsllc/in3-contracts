@@ -111,7 +111,7 @@ contract NodeRegistry {
     mapping (bytes32 => UrlInformation) public urlIndex;
 
     /// mapping for convicts: blocknumber => address => convictInformation
-    mapping (uint => mapping(address => ConvictInformation)) internal convictMapping;
+    mapping (address => ConvictInformation[]) public convictMapping;
 
     /// capping the max deposit timeout on 1 year
     uint constant internal YEAR_DEFINITION = 1 days * 365;
@@ -149,16 +149,13 @@ contract NodeRegistry {
 
     /// @notice commits a blocknumber and a hash
     /// @notice must be called before revealConvict
-    /// @param _blockNumber the blocknumber of the wrong blockhash
     /// @param _hash keccak256(wrong blockhash, msg.sender, v, r, s); used to prevent frontrunning.
     /// @dev The v,r,s paramaters are from the signature of the wrong blockhash that the node provided
-    function convict(uint _blockNumber, bytes32 _hash) external {
-
+    function convict(bytes32 _hash) external {
         ConvictInformation memory ci;
         ci.convictHash = _hash;
         ci.blockNumberConvict = block.number;
-
-        convictMapping[_blockNumber][msg.sender] = ci;
+        convictMapping[msg.sender].push(ci);
     }
 
     /// @notice register a new node with the sender as owner
@@ -294,6 +291,7 @@ contract NodeRegistry {
     /// @param _v v of the signature
     /// @param _r r of the signature
     /// @param _s s of the signature
+    /// @param _index the index position of the correct convict information in the array of the convcitInfo-map
     /// @dev reverts if a block with that number cannot be found in either the latest 256 blocks or the blockhash registry
     /// @dev reverts when tryin to convict someone with a correct blockhash
     /// @dev reverts when trying to reveal immediately after calling convict
@@ -305,7 +303,8 @@ contract NodeRegistry {
         uint _blockNumber,
         uint8 _v,
         bytes32 _r,
-        bytes32 _s
+        bytes32 _s,
+        uint _index
     )
         external
     {
@@ -322,7 +321,7 @@ contract NodeRegistry {
         require(evmBlockhash != _blockhash, "you try to convict with a correct hash");
 
         SignerInformation storage si = signerIndex[_signer];
-        ConvictInformation storage ci = convictMapping[_blockNumber][msg.sender];
+        ConvictInformation storage ci = convictMapping[msg.sender][_index];
 
         require(block.number >= ci.blockNumberConvict + 2, "revealConvict still locked");
         require(
@@ -361,7 +360,7 @@ contract NodeRegistry {
         }
 
         si.stage = Stages.Convicted;
-        delete convictMapping[_blockNumber][msg.sender];
+    //    delete convictMapping[_blockNumber][msg.sender];
 
         // remove the deposit
         uint payout = deposit / 2;
@@ -480,6 +479,13 @@ contract NodeRegistry {
             msg.sender,
             node.deposit
         );
+    }
+
+    /// @notice returns the amount of existing convictInformation for an account.
+    /// @param _account the account to get the amount of existing convictInformation
+    /// @return the amount of existing convictInformation for that account
+    function getConvictInfoLengthForAccount(address _account) external view returns (uint) {
+        return convictMapping[_account].length;
     }
 
     /// @notice length of the nodelist

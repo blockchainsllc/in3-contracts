@@ -15,7 +15,6 @@
       "error",
       70
     ],
-    "compiler-fixed": "error",
     "visibility-modifier-order": "error",
     "func-order": "error",
     "reason-string": "off"
