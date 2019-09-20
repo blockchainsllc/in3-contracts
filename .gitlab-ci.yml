@@ -15,8 +15,8 @@ lint-contracts-solium:
     - short-jobs
   script: 
     - sh /prepare.sh
-    - npm i ethlint
-    - npm run lint:solium
+  #  - npm i ethlint
+  #  - npm run lint:solium
 
 lint-contracts-solhint:
   stage: lint
@@ -24,8 +24,8 @@ lint-contracts-solhint:
     - short-jobs
   script: 
     - sh /prepare.sh
-    - npm i solhint
-    - npm run lint:solhint
+  #  - npm i solhint
+  #  - npm run lint:solhint
 
 compile-contracts:
   stage: build

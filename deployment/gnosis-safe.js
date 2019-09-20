@@ -57,6 +57,8 @@ const deployGnosisSafeWallet = async () => {
     // either use the provided privateKey or the PARITY-dev account (DO NOT USE IN PRO)
     const deployerAddress = web3.eth.accounts.privateKeyToAccount(process.env.SRV_OWNER);
 
+    console.log("deploying the in3-contracts using the address", deployerAddress.address)
+
     // parsing contract infos
     const gnosisMasterInfo = JSON.parse(fs.readFileSync("gnosis-safe-build/GnosisSafe.json"))
     let gnosisSafeMasterCopyAddress = "0xb6029EA3B2c51D09a50B53CA8012FeEB05bDa35A"
