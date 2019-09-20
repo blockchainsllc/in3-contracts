@@ -44,11 +44,7 @@ truffle-compile-contracts:
   stage: build
   tags:
     - short-jobs
-  services:
-    - docker:dind
-  image: docker.slock.it/build-images/deployment
   script:
-    - build/contracts
     - sh /prepare.sh
     - npm install
     - npm run compile
