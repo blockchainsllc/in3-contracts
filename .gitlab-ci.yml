@@ -40,6 +40,23 @@ compile-contracts:
     paths:
       - contracts/contracts.json
 
+truffle-compile-contracts:
+  stage: build
+  tags:
+    - short-jobs
+  services:
+    - docker:dind
+  image: docker.slock.it/build-images/deployment
+  script:
+    - build/contracts
+    - sh /prepare.sh
+    - npm install
+    - npm run compile
+  artifacts: 
+    paths:
+      - build/contracts/BlockhashRegistry.json
+      - build/contracts/NodeRegistry.json
+
 test-parity:
   stage: test
   tags:
@@ -92,5 +109,7 @@ deployment-dryrun:
     SRV_OWNER: "0x4d5db4107d237df6a3d58ee5f70ae63d73d7658d4026f2eefd2f204c81682cb7"
     NODE_URL: "http://localhost:8545"
   script:
+    - sh /prepare.sh
+    - npm i
     - node deployment/gnosis-safe
   when: manual
