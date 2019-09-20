@@ -50,12 +50,6 @@ contract NodeRegistry {
         bytes32 proofHash;                  /// keccak(deposit,timeout,registerTime,props,signer,url)
     }
 
-     /// information of a (future) convict (used to prevent frontrunning)
-    struct ConvictInformation {
-        bytes32 convictHash;                /// keccak256(wrong blockhash, msg.sender, v, r, s)
-        uint blockNumberConvict;            /// block number when convict had been called
-    }
-
     /// information of a in3-node owner
     struct SignerInformation {
         uint64 lockedTime;                  /// timestamp until the deposit of an in3-node can not be withdrawn after the node was removed
@@ -110,14 +104,17 @@ contract NodeRegistry {
     /// can be used to access the SignerInformation-struct
     mapping (bytes32 => UrlInformation) public urlIndex;
 
-    /// mapping for convicts: blocknumber => address => convictInformation
-    mapping (uint => mapping(address => ConvictInformation)) internal convictMapping;
+    /// mapping for convicts: sender => convictHash => block number when the convict-tx had been mined)
+    mapping (address => mapping(bytes32 => uint)) public convictMapping;
 
     /// capping the max deposit timeout on 1 year
     uint constant internal YEAR_DEFINITION = 1 days * 365;
 
     /// limit for ether per node in the 1st year
-    uint constant internal MAX_ETHER_LIMIT = 50 ether;
+    uint constant public MAX_ETHER_LIMIT = 50 ether;
+
+    /// min deposit required for registering a node
+    uint constant public MIN_DEPOSIT = 10 finney;
 
     /// version: major minor fork(000) date(yyyy/mm/dd)
     uint constant public VERSION = 12300020190709;
@@ -146,16 +143,10 @@ contract NodeRegistry {
 
     /// @notice commits a blocknumber and a hash
     /// @notice must be called before revealConvict
-    /// @param _blockNumber the blocknumber of the wrong blockhash
     /// @param _hash keccak256(wrong blockhash, msg.sender, v, r, s); used to prevent frontrunning.
     /// @dev The v,r,s paramaters are from the signature of the wrong blockhash that the node provided
-    function convict(uint _blockNumber, bytes32 _hash) external {
-
-        ConvictInformation memory ci;
-        ci.convictHash = _hash;
-        ci.blockNumberConvict = block.number;
-
-        convictMapping[_blockNumber][msg.sender] = ci;
+    function convict(bytes32 _hash) external {
+        convictMapping[msg.sender][_hash] = block.number;
     }
 
     /// @notice register a new node with the sender as owner
@@ -173,7 +164,7 @@ contract NodeRegistry {
         external
         payable
     {
-        registerNodeInternal(
+        _registerNodeInternal(
             _url,
             _props,
             _timeout,
@@ -232,7 +223,7 @@ contract NodeRegistry {
 
         require(_signer == signer, "not the correct signature of the signer provided");
 
-        registerNodeInternal(
+        _registerNodeInternal(
             _url,
             _props,
             _timeout,
@@ -259,7 +250,7 @@ contract NodeRegistry {
         SignerInformation storage si = signerIndex[_signer];
         In3Node memory n = nodes[si.index];
 
-        unregisterNodeInternal(si, n);
+        _unregisterNodeInternal(si, n);
 
     }
 
@@ -319,9 +310,20 @@ contract NodeRegistry {
         require(evmBlockhash != _blockhash, "you try to convict with a correct hash");
 
         SignerInformation storage si = signerIndex[_signer];
-        ConvictInformation storage ci = convictMapping[_blockNumber][msg.sender];
 
-        require(block.number >= ci.blockNumberConvict + 2, "revealConvict still locked");
+        bytes32 wrongBlockHashIdent = keccak256(
+            abi.encodePacked(
+                _blockhash, msg.sender, _v, _r, _s
+            )
+        );
+
+        uint convictBlockNumber = convictMapping[msg.sender][wrongBlockHashIdent];
+
+        // as we cannot deploy the contract at block 0, a convicting at block 0 is also impossible
+        // and as 0 is the standard value this also means that the convict hash is also wrong
+        require(convictBlockNumber != 0, "wrong convict hash");
+
+        require(block.number >= convictBlockNumber + 2, "revealConvict still locked");
         require(
             ecrecover(
                 keccak256(
@@ -334,13 +336,6 @@ contract NodeRegistry {
                 _v, _r, _s) == _signer,
             "the block was not signed by the signer of the node");
 
-        require(
-            keccak256(
-                abi.encodePacked(
-                    _blockhash, msg.sender, _v, _r, _s
-                )
-            ) == ci.convictHash, "wrong convict hash");
-
         require(si.stage != Stages.Convicted, "node already convicted");
         emit LogNodeConvicted(_signer);
 
@@ -349,7 +344,7 @@ contract NodeRegistry {
         if (si.stage == Stages.Active) {
             assert(nodes[si.index].signer == _signer);
             deposit = nodes[si.index].deposit;
-            removeNode(si.index);
+            _removeNodeInternal(si.index);
         } else {
             // the signer is not active anymore
             deposit = si.depositAmount;
@@ -358,7 +353,7 @@ contract NodeRegistry {
         }
 
         si.stage = Stages.Convicted;
-        delete convictMapping[_blockNumber][msg.sender];
+    //    delete convictMapping[_blockNumber][msg.sender];
 
         // remove the deposit
         uint payout = deposit / 2;
@@ -403,7 +398,7 @@ contract NodeRegistry {
         In3Node memory n = nodes[si.index];
         require(si.owner == msg.sender, "only for the in3-node owner");
 
-        unregisterNodeInternal(si, n);
+        _unregisterNodeInternal(si, n);
     }
 
     /// @notice updates a node by adding the msg.value to the deposit and setting the props or timeout
@@ -432,29 +427,30 @@ contract NodeRegistry {
 
         In3Node storage node = nodes[si.index];
 
-        bytes32 newURl = keccak256(bytes(_url));
+        bytes32 newURL = keccak256(bytes(_url));
+        bytes32 oldURL = keccak256(bytes(node.url));
 
         // the url got changed
-        if (newURl != keccak256(bytes(node.url))) {
-
-            // deleting the old entry
-            delete urlIndex[keccak256(bytes(node.url))];
+        if (newURL != oldURL) {
 
             // make sure the new url is not already in use
-            require(!urlIndex[newURl].used, "url is already in use");
+            require(!urlIndex[newURL].used, "url is already in use");
 
             UrlInformation memory ui;
             ui.used = true;
-            ui.signer = msg.sender;
-            urlIndex[newURl] = ui;
+            ui.signer = node.signer;
+            urlIndex[newURL] = ui;
             node.url = _url;
+
+            // deleting the old entry
+            delete urlIndex[oldURL];
         }
 
         if (msg.value > 0) {
             node.deposit += msg.value;
         }
 
-        checkNodeProperties(node.deposit, _timeout);
+        _checkNodePropertiesInternal(node.deposit, _timeout);
 
         if (_props != node.props) {
             node.props = _props;
@@ -468,7 +464,7 @@ contract NodeRegistry {
             node.weight = _weight;
         }
 
-        node.proofHash = calcProofHash(node);
+        node.proofHash = _calcProofHashInternal(node);
 
         emit LogNodeRegistered(
             node.url,
@@ -487,7 +483,7 @@ contract NodeRegistry {
     /// @notice calculates the sha3 hash of the most important properties in order to make the proof faster
     /// @param _node the in3 node to calculate the hash from
     /// @return the hash of the properties of an in3-node
-    function calcProofHash(In3Node memory _node) internal pure returns (bytes32) {
+    function _calcProofHashInternal(In3Node memory _node) internal pure returns (bytes32) {
 
         return keccak256(
             abi.encodePacked(
@@ -506,7 +502,7 @@ contract NodeRegistry {
     /// @param _timeout the timeout until a server can receive his depoist after unregistering
     /// @dev will fail when the deposit is greater then 50 ether in the 1st year
     /// @dev will fail when the provided timeout is greater then 1 year
-    function checkNodeProperties(uint256 _deposit, uint64 _timeout) internal view {
+    function _checkNodePropertiesInternal(uint256 _deposit, uint64 _timeout) internal view {
 
         // solium-disable-next-line security/no-block-members
         if (block.timestamp < (blockTimeStampDeployment + YEAR_DEFINITION)) { // solhint-disable-line not-rely-on-time
@@ -527,7 +523,7 @@ contract NodeRegistry {
     /// @dev reverts when provided not enough deposit
     /// @dev reverts when trying to register a node with more then 50 ether in the 1st year after deployment
     /// @dev reverts when either the owner or the url is already in use
-    function registerNodeInternal (
+    function _registerNodeInternal (
         string memory _url,
         uint64 _props,
         uint64 _timeout,
@@ -540,9 +536,9 @@ contract NodeRegistry {
     {
 
         // enforcing a minimum deposit
-        require(_deposit >= 10 finney, "not enough deposit");
+        require(_deposit >= MIN_DEPOSIT, "not enough deposit");
 
-        checkNodeProperties(_deposit, _timeout);
+        _checkNodePropertiesInternal(_deposit, _timeout);
 
         bytes32 urlHash = keccak256(bytes(_url));
 
@@ -567,7 +563,7 @@ contract NodeRegistry {
         m.registerTime = uint64(block.timestamp); // solhint-disable-line not-rely-on-time
         m.weight = _weight;
 
-        m.proofHash = calcProofHash(m);
+        m.proofHash = _calcProofHashInternal(m);
         nodes.push(m);
 
         // sets the information of the url
@@ -587,19 +583,19 @@ contract NodeRegistry {
     /// @notice handes the setting of the unregister values for a node internally
     /// @param _si information of the signer
     /// @param _n information of the in3-node
-    function unregisterNodeInternal(SignerInformation  storage _si, In3Node memory _n) internal {
+    function _unregisterNodeInternal(SignerInformation  storage _si, In3Node memory _n) internal {
 
         // solium-disable-next-line security/no-block-members
         _si.lockedTime = uint64(block.timestamp + _n.timeout);// solhint-disable-line not-rely-on-time
         _si.depositAmount = _n.deposit;
         _si.stage = Stages.DepositNotWithdrawn;
 
-        removeNode(_si.index);
+        _removeNodeInternal(_si.index);
     }
 
     /// @notice removes a node from the node-array
     /// @param _nodeIndex the nodeIndex to be removed
-    function removeNode(uint _nodeIndex) internal {
+    function _removeNodeInternal(uint _nodeIndex) internal {
         // trigger event
         emit LogNodeRemoved(nodes[_nodeIndex].url, nodes[_nodeIndex].signer);
         // deleting the old entry
