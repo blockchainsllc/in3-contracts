@@ -108,4 +108,33 @@ deployment-dryrun:
     - sh /prepare.sh
     - npm i
     - node deployment/gnosis-safe
+
+deployment-goerli-stage:
+  stage: deployBlockchain
+  tags:
+    - short-jobs
+  dependencies:
+    - truffle-compile-contracts
+  variables:
+    RPCURL: "https://rpc.slock.it/goerli"
+    NODE_URL: "https://in3.stage.slock.it/goerli"
+  script:
+    - sh /prepare.sh
+    - npm i
+    - node deployment/gnosis-safe
+  when: manual
+
+deployment-kovan-stage:
+  stage: deployBlockchain
+  tags:
+    - short-jobs
+  dependencies:
+    - truffle-compile-contracts
+  variables:
+    RPCURL: "https://rpc.slock.it/kovan"
+    NODE_URL: "https://in3.stage.slock.it/kovan"
+  script:
+    - sh /prepare.sh
+    - npm i
+    - node deployment/gnosis-safe
   when: manual
