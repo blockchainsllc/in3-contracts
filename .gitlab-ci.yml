@@ -153,3 +153,33 @@ deployment-maimnnet-stage:
     - npm i
     - node deployment/gnosis-safe
   when: manual
+
+deployment-kovan-production:
+  stage: deployBlockchain
+  tags:
+    - short-jobs
+  dependencies:
+    - truffle-compile-contracts
+  variables:
+    RPCURL: "https://rpc.slock.it/kovan"
+    NODE_URL: "https://in3-v2.slock.it/kovan"
+  script:
+    - sh /prepare.sh
+    - npm i
+    - node deployment/gnosis-safe
+  when: manual
+
+deployment-goerli-production:
+  stage: deployBlockchain
+  tags:
+    - short-jobs
+  dependencies:
+    - truffle-compile-contracts
+  variables:
+    RPCURL: "https://rpc.slock.it/goerli"
+    NODE_URL: "https://in3-v2.slock.it/goerli"
+  script:
+    - sh /prepare.sh
+    - npm i
+    - node deployment/gnosis-safe
+  when: manual
