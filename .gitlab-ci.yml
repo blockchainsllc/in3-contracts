@@ -139,7 +139,7 @@ deployment-kovan-stage:
     - node deployment/gnosis-safe
   when: manual
 
-deployment-maimnnet-stage:
+deployment-mainnet-stage:
   stage: deployBlockchain
   tags:
     - long-jobs
