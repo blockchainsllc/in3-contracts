@@ -729,9 +729,8 @@ const deployGnosisSafeWallet = async () => {
         "0x0000000000000000000000000000000000000000",       // address refundReceiver,
         signatureRemove.signatureBytes                    // bytes calldata
     ).estimateGas({ from: deployerAddress.address })
-    const txRe = await sendTx(web3, txRemove, deployedWalletAddress, 0, Math.floor(gasRemove * 1.3), deployerAddress.privateKey)
+    await sendTx(web3, txRemove, deployedWalletAddress, 0, Math.floor(gasRemove * 1.3), deployerAddress.privateKey)
 
-    console.log(txRe)
     console.log("")
     for (let i = 0; i < 5; i++) {
         const n = await nodeReg.methods.nodes(i).call()
