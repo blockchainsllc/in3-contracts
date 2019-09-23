@@ -146,7 +146,7 @@ const deployGnosisSafeWallet = async () => {
      */
 
     console.log("sending ether to wallet")
-    await sendTx(web3, null, deployedWalletAddress, "100000000000000000", 122000, parityDevAccount.privateKey)
+    await sendTx(web3, null, deployedWalletAddress, "100000000000000000", 122000, deployerAddress.privateKey)
 
     /**
     * deploying the createCall contract
