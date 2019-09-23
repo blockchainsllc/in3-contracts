@@ -867,7 +867,7 @@ contract('NodeRegistry', async () => {
 
     })
 
-    it("should fail trying to transfer the owneship while not being the owner", async () => {
+    it("should fail trying to transfer the ownership while not being the owner", async () => {
 
         const pk = await utils.createAccount(null, '49000000000000000000')
         const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
@@ -920,7 +920,7 @@ contract('NodeRegistry', async () => {
 
     it("should update a node and also changing his url", async () => {
 
-        const pk = await utils.createAccount(null, '49000000000000000000')
+        const pk = await utils.createAccount(null, '5900000000000000000')
         const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
@@ -928,7 +928,7 @@ contract('NodeRegistry', async () => {
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
         const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
-        await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
+        await utils.handleTx({ to: tx.contractAddress, data: txData, value: '4000000000000000000' }, pk)
 
         assert.strictEqual('1', await nodeRegistry.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
@@ -937,7 +937,7 @@ contract('NodeRegistry', async () => {
 
         const registeredNode = await nodeRegistry.methods.nodes(0).call()
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "4000000000000000000")
         assert.strictEqual(registeredNode.timeout, '3600')
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
@@ -946,7 +946,7 @@ contract('NodeRegistry', async () => {
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('4000000000000000000')),
                 in3Common.serialize.uint64('3600'),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 16),
@@ -957,12 +957,12 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
         const txDataUpdate = nodeRegistry.methods.updateNode(ethAcc.address, "abc", 32000, 0, 4000).encodeABI()
-        await utils.handleTx({ to: tx.contractAddress, data: txDataUpdate }, pk)
+        await utils.handleTx({ to: tx.contractAddress, data: txDataUpdate, value: "1000000000000000000" }, pk)
 
         const registeredNodeUpdated = await nodeRegistry.methods.nodes(0).call()
 
         assert.strictEqual(registeredNodeUpdated.url, "abc")
-        assert.strictEqual(registeredNodeUpdated.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNodeUpdated.deposit, "5000000000000000000")
         assert.strictEqual(registeredNodeUpdated.timeout, '3600')
         assert.strictEqual(registeredNodeUpdated.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNodeUpdated.props, '32000')
@@ -971,7 +971,7 @@ contract('NodeRegistry', async () => {
 
         const calcHashUpdated = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('5000000000000000000')),
                 in3Common.serialize.uint64('3600'),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('32000', 16),
@@ -1239,7 +1239,6 @@ contract('NodeRegistry', async () => {
 
         const signature = utils.signForRegister("#1", 65000, 3700, 2000, ethAcc.address, signerPK)
 
-
         const txData = nodeRegistry.methods.registerNodeFor("#1", 65000, 3700, signerAcc.address, 2000, signature.v, signature.r, signature.s).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
         assert.strictEqual('1', await nodeRegistry.methods.totalNodes().call())
@@ -1313,6 +1312,77 @@ contract('NodeRegistry', async () => {
         assert.isFalse(await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk).catch(_ => false))
     })
 
+    it("should update a registeredNodeFor-node and also changing his url ", async () => {
+
+        const pk = await utils.createAccount(null, '49000000000000000000')
+        const ethAcc = await web3.eth.accounts.privateKeyToAccount(pk);
+
+        const signerPK = await utils.createAccount()
+
+        const signerAcc = await web3.eth.accounts.privateKeyToAccount(signerPK);
+
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
+
+        const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
+
+        assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
+
+        const signature = utils.signForRegister("#1", 65000, 3700, 2000, ethAcc.address, signerPK)
+
+        const txData = nodeRegistry.methods.registerNodeFor("#1", 65000, 3700, signerAcc.address, 2000, signature.v, signature.r, signature.s).encodeABI()
+        await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
+
+        assert.strictEqual('1', await nodeRegistry.methods.totalNodes().call())
+        const block = await web3.eth.getBlock("latest")
+
+        const registeredNode = await nodeRegistry.methods.nodes(0).call()
+        assert.strictEqual(registeredNode.url, "#1")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.timeout, '3700')
+        assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
+        assert.strictEqual(registeredNode.props, '65000')
+        assert.strictEqual(registeredNode.signer, signerAcc.address)
+        assert.strictEqual(registeredNode.weight, '2000')
+
+        const calcHash = ethUtil.keccak(
+            Buffer.concat([
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.uint64('3700'),
+                in3Common.serialize.uint64(block.timestamp),
+                in3Common.util.toBuffer('65000', 16),
+                in3Common.serialize.address(signerAcc.address),
+                in3Common.serialize.bytes('#1')
+            ]))
+
+        assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
+
+        const txDataUpdate = nodeRegistry.methods.updateNode(signerAcc.address, "abc", 32000, 0, 4000).encodeABI()
+        await utils.handleTx({ to: tx.contractAddress, data: txDataUpdate }, pk)
+
+        const registeredNodeUpdated = await nodeRegistry.methods.nodes(0).call()
+
+        assert.strictEqual(registeredNodeUpdated.url, "abc")
+        assert.strictEqual(registeredNodeUpdated.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNodeUpdated.timeout, '3700')
+        assert.strictEqual(registeredNodeUpdated.registerTime, '' + block.timestamp)
+        assert.strictEqual(registeredNodeUpdated.props, '32000')
+        assert.strictEqual(registeredNodeUpdated.signer, signerAcc.address)
+        assert.strictEqual(registeredNodeUpdated.weight, '4000')
+
+        const calcHashUpdated = ethUtil.keccak(
+            Buffer.concat([
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.uint64('3700'),
+                in3Common.serialize.uint64(block.timestamp),
+                in3Common.util.toBuffer('32000', 16),
+                in3Common.serialize.address(signerAcc.address),
+                in3Common.serialize.bytes('abc')
+            ]))
+
+        assert.strictEqual(registeredNodeUpdated.proofHash, "0x" + calcHashUpdated.toString('hex'))
+
+    })
+
     it("should successfully convict and revealConvict and a block within 256 blocks", async () => {
 
         const pk = await utils.createAccount(null, '49000000000000000000')
@@ -1366,7 +1436,9 @@ contract('NodeRegistry', async () => {
 
         // convicting
         const convictHash = utils.createConvictHash(signedBlock.blockHash, signerAcc.address, signedBlock.v, signedBlock.r, signedBlock.s)
-        const convictData = nodeRegistry.methods.convict(block.number, "0x" + convictHash.toString('hex')).encodeABI()
+
+
+        const convictData = nodeRegistry.methods.convict("0x" + convictHash.toString('hex')).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: convictData }, signerPK)
 
         // creating some blocks
@@ -1444,7 +1516,7 @@ contract('NodeRegistry', async () => {
 
         // convicting
         const convictHash = utils.createConvictHash(signedBlock.blockHash, signerAcc.address, signedBlock.v, signedBlock.r, signedBlock.s)
-        const convictData = nodeRegistry.methods.convict(block.number, "0x" + convictHash.toString('hex')).encodeABI()
+        const convictData = nodeRegistry.methods.convict("0x" + convictHash.toString('hex')).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: convictData }, signerPK)
 
         const revealConvictData = nodeRegistry.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s).encodeABI()
@@ -1505,7 +1577,7 @@ contract('NodeRegistry', async () => {
 
         // convicting
         const convictHash = utils.createConvictHash(signedBlock.blockHash, signerAcc.address, signedBlock.v, signedBlock.s, signedBlock.s)
-        const convictData = nodeRegistry.methods.convict(block.number, "0x" + convictHash.toString('hex')).encodeABI()
+        const convictData = nodeRegistry.methods.convict("0x" + convictHash.toString('hex')).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: convictData }, signerPK)
 
         // creating some blocks
@@ -1569,7 +1641,7 @@ contract('NodeRegistry', async () => {
 
         // convicting
         const convictHash = utils.createConvictHash(signedBlock.blockHash, signerAcc.address, signedBlock.v, signedBlock.r, signedBlock.s)
-        const convictData = nodeRegistry.methods.convict(block.number, "0x" + convictHash.toString('hex')).encodeABI()
+        const convictData = nodeRegistry.methods.convict("0x" + convictHash.toString('hex')).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: convictData }, signerPK)
 
         // creating some blocks
@@ -1634,7 +1706,7 @@ contract('NodeRegistry', async () => {
 
         // convicting
         const convictHash = utils.createConvictHash(signedBlock.blockHash, signerAcc.address, signedBlock.v, signedBlock.r, signedBlock.s)
-        const convictData = nodeRegistry.methods.convict(block.number, "0x" + convictHash.toString('hex')).encodeABI()
+        const convictData = nodeRegistry.methods.convict("0x" + convictHash.toString('hex')).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: convictData }, signerPK)
 
         // creating some blocks
@@ -1711,7 +1783,7 @@ contract('NodeRegistry', async () => {
 
         // convicting
         const convictHash = utils.createConvictHash(signedBlock.blockHash, signerAcc.address, signedBlock.v, signedBlock.r, signedBlock.s)
-        const convictData = nodeRegistry.methods.convict(signedBlock.block, "0x" + convictHash.toString('hex')).encodeABI()
+        const convictData = nodeRegistry.methods.convict("0x" + convictHash.toString('hex')).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: convictData }, signerPK)
 
         // creating some blocks
@@ -1777,7 +1849,10 @@ contract('NodeRegistry', async () => {
 
         // convicting
         const convictHash = utils.createConvictHash(signedBlock.blockHash, signerAcc.address, signedBlock.v, signedBlock.r, signedBlock.s)
-        const convictData = nodeRegistry.methods.convict(signedBlock.block, "0x" + convictHash.toString('hex')).encodeABI()
+        const convictData = nodeRegistry.methods.convict("0x" + convictHash.toString('hex')).encodeABI()
+        await utils.handleTx({ to: tx.contractAddress, data: convictData }, signerPK)
+
+        // sending convict twice to also test using a different index
         await utils.handleTx({ to: tx.contractAddress, data: convictData }, signerPK)
 
         const blockHashRegistryAddress = await nodeRegistry.methods.blockRegistry().call()
@@ -1863,7 +1938,7 @@ contract('NodeRegistry', async () => {
 
         // convicting
         const convictHash = utils.createConvictHash(signedBlock.blockHash, signerAcc.address, signedBlock.v, signedBlock.r, signedBlock.s)
-        const convictData = nodeRegistry.methods.convict(block.number, "0x" + convictHash.toString('hex')).encodeABI()
+        const convictData = nodeRegistry.methods.convict("0x" + convictHash.toString('hex')).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: convictData }, signerPK)
 
         // creating some blocks
@@ -1892,7 +1967,7 @@ contract('NodeRegistry', async () => {
         const convictSecondAcc = await web3.eth.accounts.privateKeyToAccount(convictSecond);
         // convicting
         const convictHashTwo = utils.createConvictHash(signedBlock.blockHash, convictSecondAcc.address, signedBlock.v, signedBlock.r, signedBlock.s)
-        const convictDataTwo = nodeRegistry.methods.convict(block.number, "0x" + convictHashTwo.toString('hex')).encodeABI()
+        const convictDataTwo = nodeRegistry.methods.convict("0x" + convictHashTwo.toString('hex')).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: convictDataTwo }, convictSecond)
 
         await utils.createAccount(null, '1')
@@ -1960,7 +2035,7 @@ contract('NodeRegistry', async () => {
 
         // convicting
         const convictHash = utils.createConvictHash(signedBlock.blockHash, signerAcc.address, signedBlock.v, signedBlock.r, signedBlock.s)
-        const convictData = nodeRegistry.methods.convict(block.number, "0x" + convictHash.toString('hex')).encodeABI()
+        const convictData = nodeRegistry.methods.convict("0x" + convictHash.toString('hex')).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: convictData }, signerPK)
 
         const unregisterData = nodeRegistry.methods.unregisteringNode(ethAcc.address).encodeABI()
@@ -2407,5 +2482,6 @@ contract('NodeRegistry', async () => {
         assert.isFalse(await utils.handleTx({ to: tx.contractAddress, data: txDataRemoval }, deployKey).catch(_ => false))
 
     })
+
 
 })
