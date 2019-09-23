@@ -2191,7 +2191,7 @@ contract('NodeRegistry', async () => {
 
         assert.deepEqual(lastNode, registeredNodeTwo)
 
-        await utils.increaseTime(web3, 3601)
+        await utils.increaseTime(web3, 3605)
 
         const txDataDepositReturn = nodeRegistry.methods.returnDeposit(ethAcc.address).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txDataDepositReturn }, pk)

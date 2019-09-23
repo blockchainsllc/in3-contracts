@@ -15,8 +15,8 @@ lint-contracts-solium:
     - short-jobs
   script: 
     - sh /prepare.sh
-  #  - npm i ethlint
-  #  - npm run lint:solium
+    - npm i ethlint
+    - npm run lint:solium
 
 lint-contracts-solhint:
   stage: lint
@@ -24,8 +24,8 @@ lint-contracts-solhint:
     - short-jobs
   script: 
     - sh /prepare.sh
-  #  - npm i solhint
-  #  - npm run lint:solhint
+    - npm i solhint
+    - npm run lint:solhint
 
 compile-contracts:
   stage: build
@@ -62,10 +62,10 @@ test-parity:
       alias: blockchainclient
   script:
     - sh /prepare.sh
- #   - npm install
- #   - npm run compile
- #   - ./node_modules/truffle/build/cli.bundled.js migrate --network CI
- #   - ./node_modules/truffle/build/cli.bundled.js test --network CI
+    - npm install
+    - npm run compile
+    - ./node_modules/truffle/build/cli.bundled.js migrate --network CI
+    - ./node_modules/truffle/build/cli.bundled.js test --network CI
 
 test-coverage:
   stage: test
@@ -73,8 +73,8 @@ test-coverage:
     - short-jobs
   script:
     - sh /prepare.sh
-   # - npm install
-   # - npm run coverage
+    - npm install
+    - npm run coverage
 
 push-to-slockit-registry:
   stage: deploy
