@@ -138,3 +138,18 @@ deployment-kovan-stage:
     - npm i
     - node deployment/gnosis-safe
   when: manual
+
+deployment-maimnnet-stage:
+  stage: deployBlockchain
+  tags:
+    - long-jobs
+  dependencies:
+    - truffle-compile-contracts
+  variables:
+    RPCURL: "https://rpc.slock.it/mainnet"
+    NODE_URL: "https://in3-v2.slock.it/mainnet"
+  script:
+    - sh /prepare.sh
+    - npm i
+    - node deployment/gnosis-safe
+  when: manual
