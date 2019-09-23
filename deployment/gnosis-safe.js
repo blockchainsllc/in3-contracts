@@ -232,8 +232,6 @@ const deployGnosisSafeWallet = async () => {
 
     const gasTxDataCallDeployNodeRegistry = await createCall.methods.performCreate(0, nodeRegistryInfo.bytecode + web3.eth.abi.encodeParameters(['address'], [blockHashRegistryAddress]).substr(2)).estimateGas()
 
-    console.log("gasTxDataCallDeployNodeRegistry", gasTxDataCallDeployNodeRegistry)
-
     // getting the data for the gnosis-tx
     nonceWallet = await gnosisProxy.methods.nonce().call()
 
