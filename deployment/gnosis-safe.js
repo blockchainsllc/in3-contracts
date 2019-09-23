@@ -334,7 +334,7 @@ const deployGnosisSafeWallet = async () => {
         "0x0000000000000000000000000000000000000000",       // address gasToken,
         "0x0000000000000000000000000000000000000000",       // address refundReceiver,
         signatureNodeOne.signatureBytes                     // bytes calldata
-    ).estimateGas()
+    ).estimateGas({ from: deployedWalletAddress })
     await sendTx(web3, registerNodeOneTxData, deployedWalletAddress, 0, Math.floor(gasRegisterNodeOne * 1.3), deployerAddress.privateKey)
 
     console.log("node 2")
@@ -384,7 +384,7 @@ const deployGnosisSafeWallet = async () => {
         "0x0000000000000000000000000000000000000000",       // address gasToken,
         "0x0000000000000000000000000000000000000000",       // address refundReceiver,
         signatureNodeTwo.signatureBytes                     // bytes calldata
-    ).estimateGas()
+    ).estimateGas({ from: deployedWalletAddress })
     await sendTx(web3, registerNodeTwoTxData, deployedWalletAddress, 0, Math.floor(gasRegisterNodeTwo * 1.3), deployerAddress.privateKey)
 
 
@@ -435,7 +435,7 @@ const deployGnosisSafeWallet = async () => {
         "0x0000000000000000000000000000000000000000",       // address gasToken,
         "0x0000000000000000000000000000000000000000",       // address refundReceiver,
         signatureNodeThree.signatureBytes                   // bytes calldata
-    ).estimateGas()
+    ).estimateGas({ from: deployedWalletAddress })
     await sendTx(web3, registerNodeThreeTxData, deployedWalletAddress, 0, Math.floor(gasRegisterNodeThree * 1.3), deployerAddress.privateKey)
 
     console.log("node 4")
@@ -485,7 +485,7 @@ const deployGnosisSafeWallet = async () => {
         "0x0000000000000000000000000000000000000000",       // address gasToken,
         "0x0000000000000000000000000000000000000000",       // address refundReceiver,
         signatureNodeFour.signatureBytes                    // bytes calldata
-    ).estimateGas()
+    ).estimateGas({ from: deployedWalletAddress })
     await sendTx(web3, registerNodeFourTxData, deployedWalletAddress, 0, Math.floor(gasRegisterNodeFour * 1.3), deployerAddress.privateKey)
 
 
@@ -536,7 +536,7 @@ const deployGnosisSafeWallet = async () => {
         "0x0000000000000000000000000000000000000000",       // address gasToken,
         "0x0000000000000000000000000000000000000000",       // address refundReceiver,
         signatureNodeFive.signatureBytes                    // bytes calldata
-    ).estimateGas()
+    ).estimateGas({ from: deployedWalletAddress })
     await sendTx(web3, registerNodeFiveTxData, deployedWalletAddress, 0, Math.floor(gasRegisterNodeFive * 1.3), deployerAddress.privateKey)
 
     /**
@@ -587,7 +587,7 @@ const deployGnosisSafeWallet = async () => {
         "0x0000000000000000000000000000000000000000",       // address gasToken,
         "0x0000000000000000000000000000000000000000",       // address refundReceiver,
         signatureKeyOne.signatureBytes                    // bytes calldata
-    ).estimateGas()
+    ).estimateGas({ from: deployerAddress.address })
     await sendTx(web3, txKeyOne, deployedWalletAddress, 0, Math.floor(gasKeyOne * 1.3), deployerAddress.privateKey)
 
     console.log("adding 0xf68a4703314e9a9cf65be688bd6d9b3b34594ab4")
@@ -634,7 +634,7 @@ const deployGnosisSafeWallet = async () => {
         "0x0000000000000000000000000000000000000000",       // address gasToken,
         "0x0000000000000000000000000000000000000000",       // address refundReceiver,
         signatureKeyTwo.signatureBytes                    // bytes calldata
-    ).estimateGas()
+    ).estimateGas({ from: deployerAddress.address })
     await sendTx(web3, txKeyTwo, deployedWalletAddress, 0, Math.floor(gasKeyTwo * 1.3), deployerAddress.privateKey)
 
     console.log("adding 0x1487319Fb1EaE24981A2862502d397e22232e6be")
@@ -681,7 +681,7 @@ const deployGnosisSafeWallet = async () => {
         "0x0000000000000000000000000000000000000000",       // address gasToken,
         "0x0000000000000000000000000000000000000000",       // address refundReceiver,
         signatureKeyThree.signatureBytes                    // bytes calldata
-    ).estimateGas()
+    ).estimateGas({ from: deployerAddress.address })
     await sendTx(web3, txKeyThree, deployedWalletAddress, 0, Math.floor(gasKeyThree * 1.3), deployerAddress.privateKey)
 
     console.log("removing deploy-address from multisig")
