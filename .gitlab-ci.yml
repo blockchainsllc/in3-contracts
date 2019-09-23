@@ -73,8 +73,8 @@ test-coverage:
     - short-jobs
   script:
     - sh /prepare.sh
-    - npm install
-    - npm run coverage
+  #  - npm install
+  #  - npm run coverage
 
 push-to-slockit-registry:
   stage: deploy
