@@ -576,19 +576,20 @@ const deployGnosisSafeWallet = async () => {
         signatureKeyOne.signatureBytes                    // bytes calldata
     ).encodeABI()
 
-    const gasKeyOne = await gnosisProxy.methods.execTransaction(
-        deployedWalletAddress,                              // address to,
-        0,                                                  // uint256 value,
-        txDataKeyOne,                                       // bytes memory data,
-        0,                                                  // Enum.Operation operation,
-        500000,                                             // uint256 safeTxGas,
-        500000,                                             // uint256 baseGas,
-        0,                                                  // uint256 gasPrice,
-        "0x0000000000000000000000000000000000000000",       // address gasToken,
-        "0x0000000000000000000000000000000000000000",       // address refundReceiver,
-        signatureKeyOne.signatureBytes                    // bytes calldata
-    ).estimateGas({ from: deployerAddress.address })
-    await sendTx(web3, txKeyOne, deployedWalletAddress, 0, Math.floor(gasKeyOne * 1.3), deployerAddress.privateKey)
+    /*  const gasKeyOne = await gnosisProxy.methods.execTransaction(
+          deployedWalletAddress,                              // address to,
+          0,                                                  // uint256 value,
+          txDataKeyOne,                                       // bytes memory data,
+          0,                                                  // Enum.Operation operation,
+          500000,                                             // uint256 safeTxGas,
+          500000,                                             // uint256 baseGas,
+          0,                                                  // uint256 gasPrice,
+          "0x0000000000000000000000000000000000000000",       // address gasToken,
+          "0x0000000000000000000000000000000000000000",       // address refundReceiver,
+          signatureKeyOne.signatureBytes                    // bytes calldata
+      ).estimateGas({ from: deployerAddress.address })
+      */
+    await sendTx(web3, txKeyOne, deployedWalletAddress, 0, Math.floor(1050403 * 1.1), deployerAddress.privateKey)
 
     console.log("adding 0xf68a4703314e9a9cf65be688bd6d9b3b34594ab4")
     const txDataKeyTwo = gnosisProxy.methods.addOwnerWithThreshold("0xf68a4703314e9a9cf65be688bd6d9b3b34594ab4", 1).encodeABI()
@@ -623,6 +624,7 @@ const deployGnosisSafeWallet = async () => {
         signatureKeyTwo.signatureBytes                    // bytes calldata
     ).encodeABI()
 
+    /*
     const gasKeyTwo = await gnosisProxy.methods.execTransaction(
         deployedWalletAddress,                              // address to,
         0,                                                  // uint256 value,
@@ -635,7 +637,10 @@ const deployGnosisSafeWallet = async () => {
         "0x0000000000000000000000000000000000000000",       // address refundReceiver,
         signatureKeyTwo.signatureBytes                    // bytes calldata
     ).estimateGas({ from: deployerAddress.address })
-    await sendTx(web3, txKeyTwo, deployedWalletAddress, 0, Math.floor(gasKeyTwo * 1.3), deployerAddress.privateKey)
+    */
+
+    //& console.log(Math.floor(gasKeyTwo * 1.3))
+    await sendTx(web3, txKeyTwo, deployedWalletAddress, 0, Math.floor(1050403 * 1.1), deployerAddress.privateKey)
 
     console.log("adding 0x1487319Fb1EaE24981A2862502d397e22232e6be")
     const txDataKeyThree = gnosisProxy.methods.addOwnerWithThreshold("0x1487319Fb1EaE24981A2862502d397e22232e6be", 1).encodeABI()
@@ -670,6 +675,7 @@ const deployGnosisSafeWallet = async () => {
         signatureKeyThree.signatureBytes                    // bytes calldata
     ).encodeABI()
 
+    /*
     const gasKeyThree = await gnosisProxy.methods.execTransaction(
         deployedWalletAddress,                              // address to,
         0,                                                  // uint256 value,
@@ -682,7 +688,8 @@ const deployGnosisSafeWallet = async () => {
         "0x0000000000000000000000000000000000000000",       // address refundReceiver,
         signatureKeyThree.signatureBytes                    // bytes calldata
     ).estimateGas({ from: deployerAddress.address })
-    await sendTx(web3, txKeyThree, deployedWalletAddress, 0, Math.floor(gasKeyThree * 1.3), deployerAddress.privateKey)
+    */
+    await sendTx(web3, txKeyThree, deployedWalletAddress, 0, Math.floor(1050403 * 1.1), deployerAddress.privateKey)
 
     console.log("removing deploy-address from multisig")
     const txDataRemove = gnosisProxy.methods.removeOwner("0xC2c2c26961e5560081003Bb157549916B21744Db", deployerAddress.address, 2).encodeABI()
@@ -717,6 +724,7 @@ const deployGnosisSafeWallet = async () => {
         signatureRemove.signatureBytes                    // bytes calldata
     ).encodeABI()
 
+    /*
     const gasRemove = await gnosisProxy.methods.execTransaction(
         deployedWalletAddress,                              // address to,
         0,                                                  // uint256 value,
@@ -729,7 +737,8 @@ const deployGnosisSafeWallet = async () => {
         "0x0000000000000000000000000000000000000000",       // address refundReceiver,
         signatureRemove.signatureBytes                    // bytes calldata
     ).estimateGas({ from: deployerAddress.address })
-    await sendTx(web3, txRemove, deployedWalletAddress, 0, Math.floor(gasRemove * 1.3), deployerAddress.privateKey)
+    */
+    const rtx = await sendTx(web3, txRemove, deployedWalletAddress, 0, Math.floor(6664706 * 1.1), deployerAddress.privateKey)
 
     console.log("")
     for (let i = 0; i < 5; i++) {
