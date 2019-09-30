@@ -612,7 +612,7 @@ contract NodeRegistry {
         nodes[_nodeIndex] = m;
 
         SignerInformation storage si = signerIndex[m.signer];
-        si.index = uint64(_nodeIndex);
+        si.index = _nodeIndex;
         nodes.length--;
     }
 }
