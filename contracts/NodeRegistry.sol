@@ -609,9 +609,6 @@ contract NodeRegistry {
 
         assert(length > 0);
 
-        // reset the index position
-        signerIndex[nodes[_nodeIndex].signer].index = 0;
-
         // move the last entry to the removed one.
         In3Node memory m = nodes[length - 1];
         nodes[_nodeIndex] = m;
