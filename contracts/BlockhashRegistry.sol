@@ -146,7 +146,7 @@ contract BlockhashRegistry {
         /// save to use for up to 200 blocks, exponential increase of gas-usage afterwards
         for (uint i = 0; i < _blockheaders.length; i++) {
             (calcParent, calcBlockhash) = getParentAndBlockhash(_blockheaders[i]);
-            if (calcBlockhash != currentBlockhash) {
+            if (calcBlockhash != currentBlockhash || calcParent == 0x0) {
                 return 0x0;
             }
             currentBlockhash = calcParent;
