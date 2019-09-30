@@ -64,6 +64,9 @@ contract BlockhashRegistry {
 
         require(_blockheaders.length > 0, "no blockheaders provided");
 
+        uint bnr = _blockNumber - _blockheaders.length;
+        require(blockhashMapping[bnr] == 0x0, "block already stored");
+
         bytes32 currentBlockhash = blockhashMapping[_blockNumber];
         require(currentBlockhash != 0x0, "parentBlock is not available");
 
@@ -72,7 +75,6 @@ contract BlockhashRegistry {
 
         /// we should never fail this assert, as this would mean that we were able to recreate a invalid blockchain
         assert(_blockNumber > _blockheaders.length);
-        uint bnr = _blockNumber - _blockheaders.length;
         blockhashMapping[bnr] = calculatedHash;
         emit LogBlockhashAdded(bnr, calculatedHash);
     }
@@ -81,6 +83,8 @@ contract BlockhashRegistry {
     /// @param _blockNumber the blocknumber to be stored
     /// @dev reverts if the block can't be found inside the evm
     function saveBlockNumber(uint _blockNumber) public {
+
+        require(blockhashMapping[_blockNumber] == 0x0, "block already stored");
 
         bytes32 bHash = blockhash(_blockNumber);
 
