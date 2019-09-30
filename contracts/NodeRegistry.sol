@@ -132,6 +132,8 @@ contract NodeRegistry {
     /// @param _blockRegistry address of a BlockhashRegistry-contract
     /// @dev cannot be deployed in a genesis block
     constructor(BlockhashRegistry _blockRegistry) public {
+
+        require(address(_blockRegistry) != address(0x0), "no address provided");
         blockRegistry = _blockRegistry;
 
         // solium-disable-next-line security/no-block-members
@@ -213,7 +215,7 @@ contract NodeRegistry {
         );
         bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, tempHash));
 
-        require(_v == 27 || v == 28, "invalid signature");
+        require(_v == 27 || _v == 28, "invalid signature");
 
         address signer = ecrecover(
             prefixedHash,
