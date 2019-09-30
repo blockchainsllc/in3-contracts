@@ -18,7 +18,6 @@
 ***********************************************************/
 
 pragma solidity 0.5.10;
-pragma experimental ABIEncoderV2;
 
 import "./BlockhashRegistry.sol";
 
@@ -26,7 +25,7 @@ import "./BlockhashRegistry.sol";
 /// @title Registry for IN3-nodes
 contract NodeRegistry {
 
-    /// node has been registered or updated its registry props or deposit
+    /// node has been registered
     event LogNodeRegistered(string url, uint props, address signer, uint deposit);
 
     /// a node was convicted
@@ -34,6 +33,15 @@ contract NodeRegistry {
 
     /// a Node is removed
     event LogNodeRemoved(string url, address signer);
+
+    /// a node has been updated
+    event LogNodeUpdated(string url, uint props, address signer, uint deposit);
+
+    /// the ownership of a node changed
+    event LogOwnershipChanged(address signer, address oldOwner, address newOwner);
+
+    /// a user received its deposit back
+    event LogDepositReturned(address nodeOwner, uint amount);
 
     struct In3Node {
         string url;                         /// the url of the node
@@ -275,6 +283,9 @@ contract NodeRegistry {
 
         uint payout = si.depositAmount;
         delete signerIndex[_signer];
+
+        emit LogDepositReturned(msg.sender, payout);
+
         msg.sender.transfer(payout);
     }
 
@@ -328,6 +339,7 @@ contract NodeRegistry {
         require(convictBlockNumber != 0, "wrong convict hash");
 
         require(block.number >= convictBlockNumber + 2, "revealConvict still locked");
+        require(_v == 27 || _v == 28, "wrong signature");
         require(
             ecrecover(
                 keccak256(
@@ -356,7 +368,6 @@ contract NodeRegistry {
         }
 
         si.stage = Stages.Convicted;
-    //    delete convictMapping[_blockNumber][msg.sender];
 
         // remove the deposit
         uint payout = deposit / 2;
@@ -383,6 +394,8 @@ contract NodeRegistry {
         require(si.owner == msg.sender, "only for the in3-node owner");
 
         require(_newOwner != address(0x0), "0x0 address is invalid");
+        emit LogOwnershipChanged(_signer, si.owner, _newOwner);
+
         si.owner = _newOwner;
     }
 
@@ -469,7 +482,7 @@ contract NodeRegistry {
 
         node.proofHash = _calcProofHashInternal(node);
 
-        emit LogNodeRegistered(
+        emit LogNodeUpdated(
             node.url,
             _props,
             msg.sender,
