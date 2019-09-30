@@ -131,6 +131,8 @@ contract('BlockhashRegistry', async () => {
             //  const numberBlocks = allBlocks.length
             for (let i = 0; i < numberBlocks; i++) {
 
+                if (allBlocks[i].parentHash === "0x0000000000000000000000000000000000000000000000000000000000000000") console.log(allBlocks[i])
+
                 const s = new in3Common.Block(allBlocks[i]).serializeHeader()
 
                 const result = await blockHashContract.methods.getParentAndBlockhash(s).call()
@@ -244,7 +246,10 @@ contract('BlockhashRegistry', async () => {
         const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
         const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
 
-        const res = await blockHashContract.methods.searchForAvailableBlock(block.number - 10, 20).call()
+        console.log("block number", block.number)
+        console.log("block.number-10", block.number - 10)
+
+        const res = await blockHashContract.methods.searchForAvailableBlock(block.number - 10, 10).call()
         assert.strictEqual(parseInt(res, 10), block.number)
 
     })
@@ -255,7 +260,7 @@ contract('BlockhashRegistry', async () => {
         const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
         const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
 
-        const res = await blockHashContract.methods.searchForAvailableBlock(block.number - 50, 20).call()
+        const res = await blockHashContract.methods.searchForAvailableBlock(block.number - 10, 5).call()
         assert.strictEqual(parseInt(res, 10), 0)
 
     })

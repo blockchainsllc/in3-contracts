@@ -42,7 +42,7 @@ contract BlockhashRegistry {
     /// @return the closes snapshot of found within the given range, 0 else
     function searchForAvailableBlock(uint _startNumber, uint _numBlocks) external view returns (uint) {
 
-        require(_startNumber + _numBlocks <= block.number, "invalid search");
+        require((_startNumber + _numBlocks) <= block.number, "invalid search");
 
         for (uint i = _startNumber; i <= (_numBlocks + _startNumber); i++) {
             if (blockhashMapping[i] != 0x0) {
@@ -115,7 +115,7 @@ contract BlockhashRegistry {
 
         /// we also have to add "2" = 1 byte to it to skip the length-information
         uint8 offset = first - 0xf7 + 2;
-        require(offset+32 > _blockheader.length, "invalid length");
+        require(offset+32 < _blockheader.length, "invalid length");
 
         /// we are using assembly because it's the most efficent way to access the parent blockhash within the rlp-encoded blockheader
         // solium-disable-next-line security/no-inline-assembly

@@ -99,8 +99,8 @@ contract NodeRegistry {
     /// blockhash registry address
     BlockhashRegistry public blockRegistry;
 
-    /// the timestamp of the deployment
-    uint public blockTimeStampDeployment;
+    /// timestamp until the unregisterKey is active
+    uint public timestampAdminKeyActive;
 
     /// admin-key to remove some server, only usable within the 1st year
     address public unregisterKey;
@@ -145,7 +145,7 @@ contract NodeRegistry {
         blockRegistry = _blockRegistry;
 
         // solium-disable-next-line security/no-block-members
-        blockTimeStampDeployment = block.timestamp;  // solhint-disable-line not-rely-on-time
+        timestampAdminKeyActive = block.timestamp + YEAR_DEFINITION;  // solhint-disable-line not-rely-on-time
         registryId = keccak256(abi.encodePacked(address(this), blockhash(block.number-1)));
         unregisterKey = msg.sender;
     }
@@ -249,13 +249,13 @@ contract NodeRegistry {
     /// @param _signer the signer-address of the in3-node
     /// @dev only callable by the unregisterKey-account
     /// @dev only callable in the 1st year after deployment
-    function removeNodeFromRegistry(address _signer)
+    function adminRemoveNodeFromRegistry(address _signer)
         external
         onlyActiveState(_signer)
     {
 
         // solium-disable-next-line security/no-block-members
-        require(block.timestamp < (blockTimeStampDeployment + YEAR_DEFINITION), "only in 1st year");// solhint-disable-line not-rely-on-time
+        require(block.timestamp < timestampAdminKeyActive, "only in 1st year");// solhint-disable-line not-rely-on-time
         require(msg.sender == unregisterKey, "only unregisterKey is allowed to remove nodes");
 
         SignerInformation storage si = signerIndex[_signer];
@@ -474,6 +474,8 @@ contract NodeRegistry {
 
         if (_timeout > node.timeout) {
             node.timeout = _timeout;
+        } else {
+            require(_timeout == node.timeout, "decreasing timeout not supported");
         }
 
         if (_weight != node.weight) {
@@ -521,7 +523,7 @@ contract NodeRegistry {
     function _checkNodePropertiesInternal(uint256 _deposit, uint64 _timeout) internal view {
 
         // solium-disable-next-line security/no-block-members
-        if (block.timestamp < (blockTimeStampDeployment + YEAR_DEFINITION)) { // solhint-disable-line not-rely-on-time
+        if (block.timestamp < timestampAdminKeyActive) { // solhint-disable-line not-rely-on-time
             require(_deposit < MAX_ETHER_LIMIT_FIRST_YEAR, "Limit of 50 ETH reached");
         }
         require(_timeout <= YEAR_DEFINITION, "exceeded maximum timeout");
@@ -553,6 +555,7 @@ contract NodeRegistry {
 
         // enforcing a minimum deposit
         require(_deposit >= MIN_DEPOSIT, "not enough deposit");
+        require(_timeout >= 1 hours, "timeout too small");
 
         _checkNodePropertiesInternal(_deposit, _timeout);
 
@@ -574,7 +577,7 @@ contract NodeRegistry {
         m.props = _props;
         m.signer = _signer;
         m.deposit = _deposit;
-        m.timeout = _timeout > 1 hours ? _timeout : 1 hours;
+        m.timeout = _timeout;
         // solium-disable-next-line security/no-block-members
         m.registerTime = uint64(block.timestamp); // solhint-disable-line not-rely-on-time
         m.weight = _weight;

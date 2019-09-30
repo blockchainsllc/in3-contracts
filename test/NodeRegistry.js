@@ -51,7 +51,12 @@ contract('NodeRegistry', async () => {
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
-        assert.strictEqual('' + block.timestamp, await nodeRegistry.methods.blockTimeStampDeployment().call())
+        console.log("nodeReg", await nodeRegistry.methods.timestampAdminKeyActive().call())
+        console.log("block.timestamp", block.timestamp)
+        console.log("1 year", 365 * 86400)
+        console.log("end", block.timestamp + 365 * 86400)
+
+        assert.strictEqual(''+(block.timestamp + 365 * 86400), await nodeRegistry.methods.timestampAdminKeyActive().call())
 
     })
 
@@ -130,10 +135,14 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txDataFail = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
 
+        assert.isFalse(await utils.handleTx({ to: tx.contractAddress, data: txDataFail, value: '40000000000000000000' }, pk).catch(_ => false))
+
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
 
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
+
         assert.strictEqual('1', await nodeRegistry.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
@@ -159,6 +168,7 @@ contract('NodeRegistry', async () => {
             ]))
 
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
+
     })
 
 
@@ -171,7 +181,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
 
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
         const block = await web3.eth.getBlock("latest")
@@ -214,7 +224,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
 
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
         const block = await web3.eth.getBlock("latest")
@@ -244,7 +254,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
-        const txDataTwo = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txDataTwo = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         assert.isFalse(await utils.handleTx({ to: tx.contractAddress, data: txDataTwo, value: '40000000000000000000' }, pk).catch(_ => false))
     })
 
@@ -261,7 +271,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         const block = await web3.eth.getBlock("latest")
@@ -291,7 +301,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
-        const txDataTwo = nodeRegistry.methods.registerNode("#2", 65000, 0, 2000).encodeABI()
+        const txDataTwo = nodeRegistry.methods.registerNode("#2", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txDataTwo, value: '40000000000000000000' }, pk2)
         const blockTwo = await web3.eth.getBlock("latest")
 
@@ -319,7 +329,7 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(registeredNodeTwo.proofHash, "0x" + calcHashTwo.toString('hex'))
         assert.strictEqual('2', await nodeRegistry.methods.totalNodes().call())
 
-        const txDataRemoval = nodeRegistry.methods.removeNodeFromRegistry(ethAcc.address).encodeABI()
+        const txDataRemoval = nodeRegistry.methods.adminRemoveNodeFromRegistry(ethAcc.address).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txDataRemoval }, deployKey)
         assert.strictEqual('1', await nodeRegistry.methods.totalNodes().call())
 
@@ -342,7 +352,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         const block = await web3.eth.getBlock("latest")
@@ -372,7 +382,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
-        const txDataTwo = nodeRegistry.methods.registerNode("#2", 65000, 0, 2000).encodeABI()
+        const txDataTwo = nodeRegistry.methods.registerNode("#2", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txDataTwo, value: '40000000000000000000' }, pk2)
         const blockTwo = await web3.eth.getBlock("latest")
 
@@ -404,7 +414,7 @@ contract('NodeRegistry', async () => {
 
         const nonExistingAccount = await web3.eth.accounts.privateKeyToAccount(nonExistingNode);
 
-        const txDataRemoval = nodeRegistry.methods.removeNodeFromRegistry(nonExistingAccount.address).encodeABI()
+        const txDataRemoval = nodeRegistry.methods.adminRemoveNodeFromRegistry(nonExistingAccount.address).encodeABI()
         assert.isFalse(await utils.handleTx({ to: tx.contractAddress, data: txDataRemoval }, deployKey).catch(_ => false))
 
 
@@ -423,7 +433,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         const block = await web3.eth.getBlock("latest")
@@ -453,7 +463,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
-        const txDataTwo = nodeRegistry.methods.registerNode("#2", 65000, 0, 2000).encodeABI()
+        const txDataTwo = nodeRegistry.methods.registerNode("#2", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txDataTwo, value: '40000000000000000000' }, pk2)
         const blockTwo = await web3.eth.getBlock("latest")
 
@@ -481,7 +491,7 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(registeredNodeTwo.proofHash, "0x" + calcHashTwo.toString('hex'))
         assert.strictEqual('2', await nodeRegistry.methods.totalNodes().call())
 
-        const txDataRemoval = nodeRegistry.methods.removeNodeFromRegistry(ethAcc.address).encodeABI()
+        const txDataRemoval = nodeRegistry.methods.adminRemoveNodeFromRegistry(ethAcc.address).encodeABI()
         assert.isFalse(await utils.handleTx({ to: tx.contractAddress, data: txDataRemoval }, pk).catch(_ => false))
 
     })
@@ -495,7 +505,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
 
         assert.isFalse(await utils.handleTx({ to: tx.contractAddress, data: txData, value: '10000000' }, pk).catch(_ => false))
     })
@@ -523,7 +533,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
 
         assert.isFalse(await utils.handleTx({ to: tx.contractAddress, data: txData, value: '50000000000000000001' }, pk).catch(_ => false))
     })
@@ -541,7 +551,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         const block = await web3.eth.getBlock("latest")
@@ -571,7 +581,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
-        const txDataTwo = nodeRegistry.methods.registerNode("#2", 65000, 0, 2000).encodeABI()
+        const txDataTwo = nodeRegistry.methods.registerNode("#2", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txDataTwo, value: '40000000000000000000' }, pk2)
         const blockTwo = await web3.eth.getBlock("latest")
 
@@ -622,7 +632,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         const block = await web3.eth.getBlock("latest")
@@ -652,7 +662,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
-        const txDataTwo = nodeRegistry.methods.registerNode("#2", 65000, 0, 2000).encodeABI()
+        const txDataTwo = nodeRegistry.methods.registerNode("#2", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txDataTwo, value: '40000000000000000000' }, pk2)
         const blockTwo = await web3.eth.getBlock("latest")
 
@@ -697,7 +707,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         const block = await web3.eth.getBlock("latest")
@@ -727,7 +737,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
-        const txDataTwo = nodeRegistry.methods.registerNode("#2", 65000, 0, 2000).encodeABI()
+        const txDataTwo = nodeRegistry.methods.registerNode("#2", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txDataTwo, value: '40000000000000000000' }, pk2)
         const blockTwo = await web3.eth.getBlock("latest")
 
@@ -772,7 +782,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
 
 
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
@@ -827,7 +837,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
 
 
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
@@ -876,7 +886,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
 
 
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
@@ -927,7 +937,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '4000000000000000000' }, pk)
 
         assert.strictEqual('1', await nodeRegistry.methods.totalNodes().call())
@@ -956,7 +966,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
-        const txDataUpdate = nodeRegistry.methods.updateNode(ethAcc.address, "abc", 32000, 0, 4000).encodeABI()
+        const txDataUpdate = nodeRegistry.methods.updateNode(ethAcc.address, "abc", 32000, 3600, 4000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txDataUpdate, value: "1000000000000000000" }, pk)
 
         const registeredNodeUpdated = await nodeRegistry.methods.nodes(0).call()
@@ -992,7 +1002,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         assert.strictEqual('1', await nodeRegistry.methods.totalNodes().call())
@@ -1059,7 +1069,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         assert.strictEqual('1', await nodeRegistry.methods.totalNodes().call())
@@ -1088,7 +1098,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
-        const txDataUpdate = nodeRegistry.methods.updateNode(ethAcc.address, "#2", 32000, 0, 4000).encodeABI()
+        const txDataUpdate = nodeRegistry.methods.updateNode(ethAcc.address, "#2", 32000, 3600, 4000).encodeABI()
         assert.isFalse(await utils.handleTx({ to: tx.contractAddress, data: txDataUpdate }, nonOwer).catch(_ => false))
 
     })
@@ -1104,7 +1114,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         assert.strictEqual('1', await nodeRegistry.methods.totalNodes().call())
@@ -1149,7 +1159,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         assert.strictEqual('1', await nodeRegistry.methods.totalNodes().call())
@@ -1180,7 +1190,7 @@ contract('NodeRegistry', async () => {
 
         const pk2 = await utils.createAccount(null, '49000000000000000000')
 
-        const txDataTwo = nodeRegistry.methods.registerNode("#2", 65000, 0, 2000).encodeABI()
+        const txDataTwo = nodeRegistry.methods.registerNode("#2", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txDataTwo, value: '40000000000000000000' }, pk2)
         const blockTwo = await web3.eth.getBlock("latest")
 
@@ -1209,7 +1219,7 @@ contract('NodeRegistry', async () => {
         assert.strictEqual('2', await nodeRegistry.methods.totalNodes().call())
 
 
-        const txDataUpdate = nodeRegistry.methods.updateNode(ethAcc.address, "#2", 32000, 0, 4000).encodeABI()
+        const txDataUpdate = nodeRegistry.methods.updateNode(ethAcc.address, "#2", 32000, 3600, 4000).encodeABI()
 
         let failed = false
         try {
@@ -1356,9 +1366,11 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
-        const txDataUpdate = nodeRegistry.methods.updateNode(signerAcc.address, "abc", 32000, 0, 4000).encodeABI()
-        await utils.handleTx({ to: tx.contractAddress, data: txDataUpdate }, pk)
+        const txDataUpdateFail = nodeRegistry.methods.updateNode(signerAcc.address, "abc", 32000, 3600, 4000).encodeABI()
+        assert.isFalse(await utils.handleTx({ to: tx.contractAddress, data: txDataUpdateFail }, pk).catch(_ => false))
 
+        const txDataUpdate = nodeRegistry.methods.updateNode(signerAcc.address, "abc", 32000, 3700, 4000).encodeABI()
+        await utils.handleTx({ to: tx.contractAddress, data: txDataUpdate }, pk)
         const registeredNodeUpdated = await nodeRegistry.methods.nodes(0).call()
 
         assert.strictEqual(registeredNodeUpdated.url, "abc")
@@ -1397,7 +1409,7 @@ contract('NodeRegistry', async () => {
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         const block = await web3.eth.getBlock("latest")
@@ -1477,7 +1489,7 @@ contract('NodeRegistry', async () => {
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         const block = await web3.eth.getBlock("latest")
@@ -1538,7 +1550,7 @@ contract('NodeRegistry', async () => {
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         const block = await web3.eth.getBlock("latest")
@@ -1602,7 +1614,7 @@ contract('NodeRegistry', async () => {
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         const block = await web3.eth.getBlock("latest")
@@ -1667,7 +1679,7 @@ contract('NodeRegistry', async () => {
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         const block = await web3.eth.getBlock("latest")
@@ -1742,7 +1754,7 @@ contract('NodeRegistry', async () => {
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         const block = await web3.eth.getBlock("latest")
@@ -1808,7 +1820,7 @@ contract('NodeRegistry', async () => {
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         const block = await web3.eth.getBlock("latest")
@@ -1899,7 +1911,7 @@ contract('NodeRegistry', async () => {
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         const block = await web3.eth.getBlock("latest")
@@ -1996,7 +2008,7 @@ contract('NodeRegistry', async () => {
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         const block = await web3.eth.getBlock("latest")
@@ -2076,7 +2088,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         const block = await web3.eth.getBlock("latest")
@@ -2125,7 +2137,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         const block = await web3.eth.getBlock("latest")
@@ -2155,7 +2167,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
-        const txDataTwo = nodeRegistry.methods.registerNode("#2", 65000, 0, 2000).encodeABI()
+        const txDataTwo = nodeRegistry.methods.registerNode("#2", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txDataTwo, value: '40000000000000000000' }, pk2)
         const blockTwo = await web3.eth.getBlock("latest")
 
@@ -2211,7 +2223,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         const block = await web3.eth.getBlock("latest")
@@ -2241,7 +2253,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
-        const txDataTwo = nodeRegistry.methods.registerNode("#2", 65000, 0, 2000).encodeABI()
+        const txDataTwo = nodeRegistry.methods.registerNode("#2", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txDataTwo, value: '40000000000000000000' }, pk2)
         const blockTwo = await web3.eth.getBlock("latest")
 
@@ -2295,7 +2307,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
         const block = await web3.eth.getBlock("latest")
 
@@ -2325,7 +2337,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
-        const txDataTwo = nodeRegistry.methods.registerNode("#2", 65000, 0, 2000).encodeABI()
+        const txDataTwo = nodeRegistry.methods.registerNode("#2", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txDataTwo, value: '40000000000000000000' }, pk2)
         const blockTwo = await web3.eth.getBlock("latest")
 
@@ -2377,7 +2389,7 @@ contract('NodeRegistry', async () => {
 
         await utils.increaseTime(web3, 366 * 86400)
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '50000000000000000001' }, pk)
         const block = await web3.eth.getBlock("latest")
 
@@ -2418,7 +2430,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
 
-        const txData = nodeRegistry.methods.registerNode("#1", 65000, 0, 2000).encodeABI()
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
 
         const block = await web3.eth.getBlock("latest")
@@ -2448,7 +2460,7 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
-        const txDataTwo = nodeRegistry.methods.registerNode("#2", 65000, 0, 2000).encodeABI()
+        const txDataTwo = nodeRegistry.methods.registerNode("#2", 65000, 3600, 2000).encodeABI()
         await utils.handleTx({ to: tx.contractAddress, data: txDataTwo, value: '40000000000000000000' }, pk2)
         const blockTwo = await web3.eth.getBlock("latest")
 
@@ -2478,7 +2490,7 @@ contract('NodeRegistry', async () => {
 
         await utils.increaseTime(web3, 366 * 86400)
 
-        const txDataRemoval = nodeRegistry.methods.removeNodeFromRegistry(ethAcc.address).encodeABI()
+        const txDataRemoval = nodeRegistry.methods.adminRemoveNodeFromRegistry(ethAcc.address).encodeABI()
         assert.isFalse(await utils.handleTx({ to: tx.contractAddress, data: txDataRemoval }, deployKey).catch(_ => false))
 
     })
