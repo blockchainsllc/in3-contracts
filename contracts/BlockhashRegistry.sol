@@ -109,17 +109,14 @@ contract BlockhashRegistry {
         /// we are using assembly because it's the most efficent way to access the parent blockhash within the rlp-encoded blockheader
         // solium-disable-next-line security/no-inline-assembly
         assembly { // solhint-disable-line no-inline-assembly
-            // mstore to get the memory pointer of the blockheader to 0x20
-            mstore(0x20, _blockheader)
-
-            // we load the pointer we just stored
+            // we load the provided blockheader
             // then we add 0x20 (32 bytes) to get to the start of the blockheader
             // then we add the offset we calculated
             // and load it to the parentHash variable
-            parentHash :=mload(
+      parentHash :=mload(
                 add(
                     add(
-                        mload(0x20), 0x20
+                        _blockheader, 0x20
                     ), offset)
             )
         }
