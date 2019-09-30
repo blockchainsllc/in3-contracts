@@ -213,6 +213,8 @@ contract NodeRegistry {
         );
         bytes32 prefixedHash = keccak256(abi.encodePacked(prefix, tempHash));
 
+        require(_v == 27 || v == 28, "invalid signature");
+
         address signer = ecrecover(
             prefixedHash,
             _v,
@@ -296,6 +298,9 @@ contract NodeRegistry {
     )
         external
     {
+        SignerInformation storage si = signerIndex[_signer];
+        require(si.stage != Stages.Convicted, "node already convicted");
+
         // solium-disable-next-line security/no-block-members
         bytes32 evmBlockhash = blockhash(_blockNumber);
 
@@ -307,8 +312,6 @@ contract NodeRegistry {
 
         // if the blockhash is correct you cannot convict the node
         require(evmBlockhash != _blockhash, "you try to convict with a correct hash");
-
-        SignerInformation storage si = signerIndex[_signer];
 
         bytes32 wrongBlockHashIdent = keccak256(
             abi.encodePacked(
@@ -335,7 +338,6 @@ contract NodeRegistry {
                 _v, _r, _s) == _signer,
             "the block was not signed by the signer of the node");
 
-        require(si.stage != Stages.Convicted, "node already convicted");
         emit LogNodeConvicted(_signer);
 
         uint deposit = 0;
@@ -595,6 +597,8 @@ contract NodeRegistry {
     /// @notice removes a node from the node-array
     /// @param _nodeIndex the nodeIndex to be removed
     function _removeNodeInternal(uint _nodeIndex) internal {
+
+        require(_nodeIndex < nodes.length, "invalid node index provided");
         // trigger event
         emit LogNodeRemoved(nodes[_nodeIndex].url, nodes[_nodeIndex].signer);
         // deleting the old entry
