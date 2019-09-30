@@ -105,6 +105,7 @@ contract BlockhashRegistry {
         /// we also have to add "2" = 1 byte to it to skip the length-information
         require(first > 0xf7, "invalid offset");
         uint8 offset = first - 0xf7 + 2;
+        require(offset+32 > _blockheader.length, "invalid length");
 
         /// we are using assembly because it's the most efficent way to access the parent blockhash within the rlp-encoded blockheader
         // solium-disable-next-line security/no-inline-assembly
@@ -120,6 +121,8 @@ contract BlockhashRegistry {
                     ), offset)
             )
         }
+
+        require(parentHash != bytes32(0x0), "invalid parentHash");
         bhash = keccak256(_blockheader);
     }
 
