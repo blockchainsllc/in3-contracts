@@ -60,6 +60,8 @@ contract BlockhashRegistry {
     /// @dev function is public due to the usage of a dynamic bytes array (not yet supported for external functions)
     function recreateBlockheaders(uint _blockNumber, bytes[] memory _blockheaders) public {
 
+        require(_blockheaders.length > 0, "no blockheaders provided");
+
         bytes32 currentBlockhash = blockhashMapping[_blockNumber];
         require(currentBlockhash != 0x0, "parentBlock is not available");
 
@@ -122,7 +124,7 @@ contract BlockhashRegistry {
             )
         }
 
-        require(parentHash != bytes32(0x0), "invalid parentHash");
+        require(parentHash != 0x0, "invalid parentHash");
         bhash = keccak256(_blockheader);
     }
 
@@ -133,6 +135,8 @@ contract BlockhashRegistry {
     /// @return 0x0 if the functions detects a wrong chaining of blocks, blockhash of the last element of the array otherwhise
     function reCalculateBlockheaders(bytes[] memory _blockheaders, bytes32 _bHash) public pure returns (bytes32 bhash) {
 
+        require(_blockheaders.length > 0, "no blockheaders provided");
+        require(_bHash != 0x0, "invalid blockhash provided");
         bytes32 currentBlockhash = _bHash;
         bytes32 calcParent = 0x0;
         bytes32 calcBlockhash = 0x0;
