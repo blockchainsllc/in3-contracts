@@ -111,7 +111,7 @@ contract NodeRegistry {
     uint constant internal YEAR_DEFINITION = 1 days * 365;
 
     /// limit for ether per node in the 1st year
-    uint constant public MAX_ETHER_LIMIT = 50 ether;
+    uint constant public MAX_ETHER_LIMIT_FIRST_YEAR = 50 ether;
 
     /// min deposit required for registering a node
     uint constant public MIN_DEPOSIT = 10 finney;
@@ -509,7 +509,7 @@ contract NodeRegistry {
 
         // solium-disable-next-line security/no-block-members
         if (block.timestamp < (blockTimeStampDeployment + YEAR_DEFINITION)) { // solhint-disable-line not-rely-on-time
-            require(_deposit < MAX_ETHER_LIMIT, "Limit of 50 ETH reached");
+            require(_deposit < MAX_ETHER_LIMIT_FIRST_YEAR, "Limit of 50 ETH reached");
         }
         require(_timeout <= YEAR_DEFINITION, "exceeded maximum timeout");
     }
@@ -531,7 +531,7 @@ contract NodeRegistry {
         uint64 _props,
         uint64 _timeout,
         address _signer,
-        address payable _owner,
+        address _owner,
         uint _deposit,
         uint64 _weight
     )
