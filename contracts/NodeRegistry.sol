@@ -124,7 +124,6 @@ contract NodeRegistry {
         SignerInformation memory si = signerIndex[_signer];
         require(si.stage == Stages.Active, "address is not an in3-signer");
 
-        In3Node memory n = nodes[si.index];
         assert(nodes[si.index].signer == _signer);
         _;
     }
