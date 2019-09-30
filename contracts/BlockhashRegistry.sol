@@ -42,6 +42,8 @@ contract BlockhashRegistry {
     /// @return the closes snapshot of found within the given range, 0 else
     function searchForAvailableBlock(uint _startNumber, uint _numBlocks) external view returns (uint) {
 
+        require(_startNumber + _numBlocks <= block.number, "invalid search");
+
         for (uint i = _startNumber; i <= (_numBlocks + _startNumber); i++) {
             if (blockhashMapping[i] != 0x0) {
                 return i;
