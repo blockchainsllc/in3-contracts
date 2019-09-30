@@ -122,7 +122,7 @@ contract BlockhashRegistry {
             // then we add 0x20 (32 bytes) to get to the start of the blockheader
             // then we add the offset we calculated
             // and load it to the parentHash variable
-      parentHash :=mload(
+            parentHash :=mload(
                 add(
                     add(
                         _blockheader, 0x20
