@@ -8,9 +8,11 @@ const deployContract = async (web3, byteCode, privateKey) => {
 
     const senderAddress = web3.eth.accounts.privateKeyToAccount(privateKey);
 
+    await timeout(15000)
+
     const nonce = await web3.eth.getTransactionCount(senderAddress.address)
 
-    const gasPrice = await web3.eth.getGasPrice()
+    const gasPrice = Math.floor(parseInt(await web3.eth.getGasPrice()) * 1.05)
 
     const transactionParams = {
         to: '',
@@ -25,12 +27,18 @@ const deployContract = async (web3, byteCode, privateKey) => {
     return (web3.eth.sendSignedTransaction(signedTx.rawTransaction));
 }
 
+function timeout(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+
 const sendTx = async (web3, data, targetAddress, value, gasLimit, privateKey) => {
     const senderAddress = web3.eth.accounts.privateKeyToAccount(privateKey);
+    await timeout(15000)
 
-    const nonce = await web3.eth.getTransactionCount(senderAddress.address, "pending")
+    const nonce = await web3.eth.getTransactionCount(senderAddress.address)
 
-    const gasPrice = await web3.eth.getGasPrice()
+    const gasPrice = Math.floor(parseInt(await web3.eth.getGasPrice()) * 1.05)
 
     const transactionParams = {
         to: targetAddress,
@@ -556,8 +564,8 @@ const deployGnosisSafeWallet = async () => {
         0,                                                  // uint256 value,
         txDataRemove,                                       // bytes memory data,
         0,                                                  // Enum.Operation operation,
-        5000000,                                             // uint256 safeTxGas,
-        5000000,                                             // uint256 baseGas,
+        0,                                             // uint256 safeTxGas,
+        0,                                             // uint256 baseGas,
         0,                                                  // uint256 gasPrice,
         "0x0000000000000000000000000000000000000000",       // address gasToken,
         "0x0000000000000000000000000000000000000000",       // address refundReceiver,
@@ -572,15 +580,15 @@ const deployGnosisSafeWallet = async () => {
         0,                                                  // uint256 value,
         txDataRemove,                                       // bytes memory data,
         0,                                                  // Enum.Operation operation,
-        5000000,                                             // uint256 safeTxGas,
-        5000000,                                             // uint256 baseGas,
+        0,                                             // uint256 safeTxGas,
+        0,                                             // uint256 baseGas,
         0,                                                  // uint256 gasPrice,
         "0x0000000000000000000000000000000000000000",       // address gasToken,
         "0x0000000000000000000000000000000000000000",       // address refundReceiver,
         signatureRemove.signatureBytes                    // bytes calldata
     ).encodeABI()
 
-    await sendTx(web3, txRemove, deployedWalletAddress, 0, Math.floor(6664706 * 1.1), deployerAddress.privateKey)
+    await sendTx(web3, txRemove, deployedWalletAddress, 0, Math.floor(250000 * 1.1), deployerAddress.privateKey)
 
     console.log("")
     for (let i = 0; i < 5; i++) {
