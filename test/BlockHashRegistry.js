@@ -119,21 +119,7 @@ contract('BlockhashRegistry', async () => {
 
         const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
         const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
-        const goerliGenesis = {
-            parentHash: "0xbf7e33",
-        }
-
-        const b = new in3Common.Block(goerliGenesis)
-        let serializedBlock = b.serializeHeader()
-
-        console.log("serialized", serializedBlock)
-
-        //  const newB = Buffer.from("0xf901eda0bf7833a0")
         const newB = in3Common.util.toBuffer("0xf901eda0bf7833a0", 8)
-        console.log(newB)
-
-        //  console.log(await blockHashContract.methods.getParentAndBlockhash(newB).call())
-
         assert.isFalse(await blockHashContract.methods.getParentAndBlockhash(newB).call().catch(_ => false))
 
     })
