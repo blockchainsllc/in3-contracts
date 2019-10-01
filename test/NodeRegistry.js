@@ -11,6 +11,11 @@ const BlockhashRegistry = JSON.parse(fs.readFileSync('build/contracts/BlockhashR
 
 contract('NodeRegistry', async () => {
 
+    it("should fail deploying when no blockhash-address is provided", async () => {
+
+        assert.isFalse(await deployment.deployNodeRegistry(new Web3(web3.currentProvider), "0x0000000000000000000000000000000000000000").catch(_ => false))
+    })
+
     it("should return the correct registryId", async () => {
 
         const txBH = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
@@ -332,7 +337,13 @@ contract('NodeRegistry', async () => {
 
         assert.deepEqual(lastNode, registeredNodeTwo)
 
+        const txDataRemovalTwo = nodeRegistry.methods.adminRemoveNodeFromRegistry(web3.eth.accounts.privateKeyToAccount(pk2).address).encodeABI()
+        await utils.handleTx({ to: tx.contractAddress, data: txDataRemovalTwo }, deployKey)
+
+        assert.isFalse(await utils.handleTx({ to: tx.contractAddress, data: txDataRemovalTwo }, deployKey).catch(_ => false))
+
     })
+
 
     it("should fail removing an non existing node", async () => {
 
@@ -1272,6 +1283,28 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
     })
 
+    it("should fail registering a node for a different signer when the v of the signature is wrong", async () => {
+
+        const pk = await utils.createAccount(null, '49000000000000000000')
+        const ethAcc = await web3.eth.accounts.privateKeyToAccount(pk);
+
+        const signerPK = await utils.createAccount()
+
+        const signerAcc = await web3.eth.accounts.privateKeyToAccount(signerPK);
+
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
+
+        const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
+
+        assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
+
+        const signature = utils.signForRegister("#1", 65000, 3700, 2000, ethAcc.address, signerPK)
+
+        const txData = nodeRegistry.methods.registerNodeFor("#1", 65000, 3700, signerAcc.address, 2000, 0, signature.r, signature.s).encodeABI()
+        assert.isFalse(await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk).catch(_ => false))
+
+    })
+
     it("should fail registering for a different signer using a timeout that is too high", async () => {
 
         const pk = await utils.createAccount(null, '49000000000000000000')
@@ -1468,6 +1501,73 @@ contract('NodeRegistry', async () => {
         const halfDeposit = in3Common.util.toBN(registeredNode.deposit).div(in3Common.util.toBN('2'))
 
         assert.strictEqual(in3Common.util.toBN(balanceSenderBefore).add(halfDeposit).toString('hex'), in3Common.util.toBN(balanceSenderAfter).toString('hex'))
+    })
+
+    it("should fail revealing when the v of the signature is wrong", async () => {
+
+        const pk = await utils.createAccount(null, '49000000000000000000')
+        const ethAcc = await web3.eth.accounts.privateKeyToAccount(pk);
+
+        const signerPK = await utils.createAccount()
+
+        const signerAcc = await web3.eth.accounts.privateKeyToAccount(signerPK);
+
+        const tx = await deployment.deployNodeRegistry(new Web3(web3.currentProvider))
+
+        const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
+
+        assert.strictEqual('0', await nodeRegistry.methods.totalNodes().call())
+        const txData = nodeRegistry.methods.registerNode("#1", 65000, 3600, 2000).encodeABI()
+        await utils.handleTx({ to: tx.contractAddress, data: txData, value: '40000000000000000000' }, pk)
+
+        const block = await web3.eth.getBlock("latest")
+
+        assert.strictEqual('1', await nodeRegistry.methods.totalNodes().call())
+
+        const registeredNode = await nodeRegistry.methods.nodes(0).call()
+
+        assert.strictEqual(registeredNode.url, "#1")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.timeout, '3600')
+        assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
+        assert.strictEqual(registeredNode.props, '65000')
+        assert.strictEqual(registeredNode.signer, ethAcc.address)
+
+        const calcHash = ethUtil.keccak(
+            Buffer.concat([
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.uint64('3600'),
+                in3Common.serialize.uint64(block.timestamp),
+                in3Common.util.toBuffer('65000', 16),
+                in3Common.serialize.address(ethAcc.address),
+                in3Common.serialize.bytes('#1')
+            ]))
+
+        assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
+        const signerInfoBefore = await nodeRegistry.methods.signerIndex(ethAcc.address).call()
+
+        assert.strictEqual(signerInfoBefore.stage, '1')
+        assert.strictEqual(signerInfoBefore.owner, ethAcc.address)
+        assert.strictEqual(signerInfoBefore.depositAmount, '0')
+
+
+        const b = new in3Common.Block(block)
+        const signedBlock = utils.signBlock(b, await nodeRegistry.methods.registryId().call(), pk, "0x0000000000000000000000000000000000000000000000000000000000001234")
+
+        // convicting
+        const convictHash = utils.createConvictHash(signedBlock.blockHash, signerAcc.address, 0, signedBlock.r, signedBlock.s)
+
+
+        const convictData = nodeRegistry.methods.convict("0x" + convictHash.toString('hex')).encodeABI()
+        await utils.handleTx({ to: tx.contractAddress, data: convictData }, signerPK)
+
+        // creating some blocks
+        await utils.createAccount(null, '1')
+        await utils.createAccount(null, '1')
+
+        const revealConvictData = nodeRegistry.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, 0, signedBlock.r, signedBlock.s).encodeABI()
+        assert.isFalse(await utils.handleTx({ to: tx.contractAddress, data: revealConvictData }, signerPK).catch(_ => false))
+
     })
 
     it("should fail when calling revealConvict too early", async () => {

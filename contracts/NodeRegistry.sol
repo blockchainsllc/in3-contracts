@@ -150,6 +150,26 @@ contract NodeRegistry {
         unregisterKey = msg.sender;
     }
 
+    /// @notice removes an in3-server from the registry
+    /// @param _signer the signer-address of the in3-node
+    /// @dev only callable by the unregisterKey-account
+    /// @dev only callable in the 1st year after deployment
+    function adminRemoveNodeFromRegistry(address _signer)
+        external
+        onlyActiveState(_signer)
+    {
+
+        // solium-disable-next-line security/no-block-members
+        require(block.timestamp < timestampAdminKeyActive, "only in 1st year");// solhint-disable-line not-rely-on-time
+        require(msg.sender == unregisterKey, "only unregisterKey is allowed to remove nodes");
+
+        SignerInformation storage si = signerIndex[_signer];
+        In3Node memory n = nodes[si.index];
+
+        _unregisterNodeInternal(si, n);
+
+    }
+
     /// @notice commits a blocknumber and a hash
     /// @notice must be called before revealConvict
     /// @param _hash keccak256(wrong blockhash, msg.sender, v, r, s); used to prevent frontrunning.
@@ -243,26 +263,6 @@ contract NodeRegistry {
             msg.value,
             _weight
         );
-    }
-
-    /// @notice removes an in3-server from the registry
-    /// @param _signer the signer-address of the in3-node
-    /// @dev only callable by the unregisterKey-account
-    /// @dev only callable in the 1st year after deployment
-    function adminRemoveNodeFromRegistry(address _signer)
-        external
-        onlyActiveState(_signer)
-    {
-
-        // solium-disable-next-line security/no-block-members
-        require(block.timestamp < timestampAdminKeyActive, "only in 1st year");// solhint-disable-line not-rely-on-time
-        require(msg.sender == unregisterKey, "only unregisterKey is allowed to remove nodes");
-
-        SignerInformation storage si = signerIndex[_signer];
-        In3Node memory n = nodes[si.index];
-
-        _unregisterNodeInternal(si, n);
-
     }
 
     /// @notice returns the deposit after a node has been removed due to inactivity
