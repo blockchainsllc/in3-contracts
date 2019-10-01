@@ -51,12 +51,7 @@ contract('NodeRegistry', async () => {
 
         const nodeRegistry = new web3.eth.Contract(NodeRegistry.abi, tx.contractAddress)
 
-        console.log("nodeReg", await nodeRegistry.methods.timestampAdminKeyActive().call())
-        console.log("block.timestamp", block.timestamp)
-        console.log("1 year", 365 * 86400)
-        console.log("end", block.timestamp + 365 * 86400)
-
-        assert.strictEqual(''+(block.timestamp + 365 * 86400), await nodeRegistry.methods.timestampAdminKeyActive().call())
+        assert.strictEqual('' + (block.timestamp + 365 * 86400), await nodeRegistry.methods.timestampAdminKeyActive().call())
 
     })
 
