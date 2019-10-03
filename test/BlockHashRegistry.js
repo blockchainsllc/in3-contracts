@@ -216,7 +216,7 @@ contract('BlockhashRegistry', async () => {
                 }
 
                 serialzedBlocks = serialzedBlocks.reverse()
-                const result = await blockHashContract.methods.reCalculateBlockheaders(serialzedBlocks, startHash).call()
+                const result = await blockHashContract.methods.reCalculateBlockheaders(serialzedBlocks, startHash, allBlocks[allBlocks.length - 1].number).call()
                 assert.strictEqual(result, firstBlock.hash)
             }
         }
@@ -249,7 +249,7 @@ contract('BlockhashRegistry', async () => {
                 const temp = serialzedBlocks[2]
                 serialzedBlocks[2] = serialzedBlocks[3]
                 serialzedBlocks[3] = temp
-                const result = await blockHashContract.methods.reCalculateBlockheaders(serialzedBlocks, startHash).call()
+                const result = await blockHashContract.methods.reCalculateBlockheaders(serialzedBlocks, startHash, allBlocks[allBlocks.length - 1].number).call()
                 assert.strictEqual(result, "0x0000000000000000000000000000000000000000000000000000000000000000")
             }
         }
@@ -282,7 +282,7 @@ contract('BlockhashRegistry', async () => {
 
                 serialzedBlocks = serialzedBlocks.reverse()
 
-                assert.isFalse(await blockHashContract.methods.reCalculateBlockheaders(serialzedBlocks, startHash).call().catch(_ => false))
+                assert.isFalse(await blockHashContract.methods.reCalculateBlockheaders(serialzedBlocks, startHash, allBlocks[allBlocks.length - 1].number).call().catch(_ => false))
             }
         }
     })
@@ -337,7 +337,7 @@ contract('BlockhashRegistry', async () => {
 
         const b = new in3Common.Block(block).serializeHeader()
 
-        assert.isFalse(await blockHashContract.methods.reCalculateBlockheaders([b], "0x0000000000000000000000000000000000000000000000000000000000000000").call().catch(_ => false))
+        assert.isFalse(await blockHashContract.methods.reCalculateBlockheaders([b], "0x0000000000000000000000000000000000000000000000000000000000000000", block.number).call().catch(_ => false))
     })
 
     it("should fail recreating when no blockheaders are provided", async () => {
@@ -345,7 +345,7 @@ contract('BlockhashRegistry', async () => {
         const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
         const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
         const block = await web3.eth.getBlock('latest')
-        assert.isFalse(await blockHashContract.methods.reCalculateBlockheaders([], block.hash).call().catch(_ => false))
+        assert.isFalse(await blockHashContract.methods.reCalculateBlockheaders([], block.hash, 0).call().catch(_ => false))
     })
 
     it("should find an existing block using searchForAvailableBlock and block is in range", async () => {

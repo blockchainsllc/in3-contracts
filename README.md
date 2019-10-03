@@ -73,8 +73,7 @@ After the timeout-period is over, the deposit can be withdrawn using the functio
 
 If an in3-node sends a wrong response to the clients, he can be convicted using two steps: 
 
-Calling the `convict(uint _blockNumber, bytes32 _hash)` function with uses 2 parameters:
-* `_blockNumber` the blockNumber of the block with the wrong blockhash
+Calling the `convict(bytes32 _hash)` function with uses 2 parameters:
 * `_hash` a hash calculated using the formula `keccak256(wrong blockhash, msg.sender, v, r, s)`, i.e. hashing the wrongly provided blockhash, the sender of the convict-transaction and the signature paramters of the in3-node response the client received. 
 
 After this transaction was mined, the user has to wait for at least 2 blocks until he can call `revealConvict(address _signer, bytes32 _blockhash, uint _blockNumber, uint8 _v, bytes32 _r,bytes32 _s)` with the parameters: 

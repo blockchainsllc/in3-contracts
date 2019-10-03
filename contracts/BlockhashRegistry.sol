@@ -73,7 +73,7 @@ contract BlockhashRegistry {
         bytes32 currentBlockhash = blockhashMapping[_blockNumber];
         require(currentBlockhash != 0x0, "parentBlock is not available");
 
-        bytes32 calculatedHash = reCalculateBlockheaders(_blockheaders, currentBlockhash);
+        bytes32 calculatedHash = reCalculateBlockheaders(_blockheaders, currentBlockhash, _blockNumber);
         require(calculatedHash != 0x0, "invalid headers");
 
         blockhashMapping[bnr] = calculatedHash;
@@ -101,10 +101,45 @@ contract BlockhashRegistry {
         saveBlockNumber(block.number-1);
     }
 
+    /// @notice returns the value from rlp encoded data.
+    ///         This function is limited to only value up to 32 bytes length!
+    /// @param _data rlp encoded data
+    /// @return the value and the next offset
+    function getRlpUint(bytes memory _data, uint _offset) public pure returns (uint value, uint nextOffset) {
+        /// get the byte at offset to figure out the length of the value
+        uint8 c = uint8(_data[_offset]);
+
+        /// we will not accept values above 0xa0, since this would mean we either have a list
+        /// or we have a value with a length greater 32 bytes
+        /// for the use cases (getting the blockNumber or difficulty) we can accept these limits.
+        require(c < 0xa1, "lists or long fields are not supported");
+        if (c<0x80)  // single byte-item
+          return (uint(c),_offset+1); // value = byte
+
+        uint len = c - 0x80; // length of the value
+        // we skip the first 32 bytes since they contain the legth and add 1 because this byte contains the length of the value.
+        uint dataOffset = _offset + 33;
+
+        /// we are using assembly because we need to get the value of the next `len` bytes
+        /// This is done by copying the bytes in the "scratch space" so we can take the first 32 bytes as value afterwards.
+        // solium-disable-next-line security/no-inline-assembly
+        assembly { // solhint-disable-line no-inline-assembly
+            mstore(0x0,0) // clean memory in the "scratch space"
+            mstore(
+                  sub (0x20, len), // we move the position so the first bytes from rlp are the last bytes within the 32 bytes
+                  mload(
+                      add ( _data ,dataOffset ) // load the data from rlp-data
+                  )
+            )
+            value:=mload(0x0)
+        }
+        return (value, _offset+1+len);
+    }
+
     /// @notice returns the blockhash and the parent blockhash from the provided blockheader
     /// @param _blockheader a serialized (rlp-encoded) blockheader
     /// @return the parent blockhash and the keccak256 of the provided blockheader (= the corresponding blockhash)
-    function getParentAndBlockhash(bytes memory _blockheader) public pure returns (bytes32 parentHash, bytes32 bhash) {
+    function getParentAndBlockhash(bytes memory _blockheader) public pure returns (bytes32 parentHash, bytes32 bhash, uint blockNumber) {
 
         /// we need the 1st byte of the blockheader to calculate the position of the parentHash
         uint8 first = uint8(_blockheader[0]);
@@ -114,7 +149,7 @@ contract BlockhashRegistry {
         require(first > 0xf7, "invalid offset");
 
         /// we also have to add "2" = 1 byte to it to skip the length-information
-        uint8 offset = first - 0xf7 + 2;
+        uint offset = first - 0xf7 + 2;
         require(offset+32 < _blockheader.length, "invalid length");
 
         /// we are using assembly because it's the most efficent way to access the parent blockhash within the rlp-encoded blockheader
@@ -134,28 +169,38 @@ contract BlockhashRegistry {
 
         require(parentHash != 0x0, "invalid parentHash");
         bhash = keccak256(_blockheader);
+
+        // we set the offset to the difficulty field which is fixed since all fields between them have a fixe length.
+        uint numberOffset = 0;
+        (,numberOffset) = getRlpUint(_blockheader, offset + 444);
+        require(numberOffset+32 < _blockheader.length,"invalid blockheader length");
+        (blockNumber,) = getRlpUint(_blockheader, numberOffset);
     }
 
     /// @notice starts with a given blockhash and its header and tries to recreate a (reverse) chain of blocks
     /// @notice the array of the blockheaders have to be in reverse order (e.g. [100,99,98,97])
     /// @param _blockheaders array with serialized blockheaders in reverse order, i.e. from youngest to oldest
     /// @param _bHash blockhash of the 1st element of the _blockheaders-array
+    /// @param _blockNumber blocknumber of the 1st element of the _blockheaders-array. This is only needed to verify the blockheader
     /// @return 0x0 if the functions detects a wrong chaining of blocks, blockhash of the last element of the array otherwhise
-    function reCalculateBlockheaders(bytes[] memory _blockheaders, bytes32 _bHash) public pure returns (bytes32 bhash) {
+    function reCalculateBlockheaders(bytes[] memory _blockheaders, bytes32 _bHash, uint _blockNumber) public pure returns (bytes32 bhash) {
 
         require(_blockheaders.length > 0, "no blockheaders provided");
         require(_bHash != 0x0, "invalid blockhash provided");
         bytes32 currentBlockhash = _bHash;
         bytes32 calcParent = 0x0;
         bytes32 calcBlockhash = 0x0;
+        uint calcBlockNumber = 0;
+        uint currentBlockNumber = _blockNumber;
 
         /// save to use for up to 200 blocks, exponential increase of gas-usage afterwards
         for (uint i = 0; i < _blockheaders.length; i++) {
-            (calcParent, calcBlockhash) = getParentAndBlockhash(_blockheaders[i]);
-            if (calcBlockhash != currentBlockhash || calcParent == 0x0) {
+            (calcParent, calcBlockhash, calcBlockNumber) = getParentAndBlockhash(_blockheaders[i]);
+            if (calcBlockhash != currentBlockhash || calcParent == 0x0 || calcBlockNumber!=currentBlockNumber) {
                 return 0x0;
             }
             currentBlockhash = calcParent;
+            currentBlockNumber--;
         }
 
         return currentBlockhash;
