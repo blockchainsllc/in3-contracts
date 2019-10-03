@@ -113,8 +113,8 @@ contract BlockhashRegistry {
         /// or we have a value with a length greater 32 bytes
         /// for the use cases (getting the blockNumber or difficulty) we can accept these limits.
         require(c < 0xa1, "lists or long fields are not supported");
-        if (c<0x80)  // single byte-item
-          return uint(c); // value = byte
+        if (c < 0x80)  // single byte-item
+            return uint(c); // value = byte
 
         // length of the value
         uint len = c - 0x80;
@@ -122,18 +122,18 @@ contract BlockhashRegistry {
         uint dataOffset = _offset + 33;
 
         /// check the range
-        require(_offset+len <= _data.length,"invalid offset");
+        require(_offset + len <= _data.length, "invalid offset");
 
         /// we are using assembly because we need to get the value of the next `len` bytes
         /// This is done by copying the bytes in the "scratch space" so we can take the first 32 bytes as value afterwards.
         // solium-disable-next-line security/no-inline-assembly
         assembly { // solhint-disable-line no-inline-assembly
-            mstore(0x0,0) // clean memory in the "scratch space"
+            mstore(0x0, 0) // clean memory in the "scratch space"
             mstore(
-                  sub (0x20, len), // we move the position so the first bytes from rlp are the last bytes within the 32 bytes
-                  mload(
-                      add ( _data ,dataOffset ) // load the data from rlp-data
-                  )
+                sub (0x20, len), // we move the position so the first bytes from rlp are the last bytes within the 32 bytes
+                mload(
+                    add ( _data, dataOffset ) // load the data from rlp-data
+                )
             )
             value:=mload(0x0)
         }
@@ -183,7 +183,7 @@ contract BlockhashRegistry {
         // and calculate the length, because the next field is the blockNumber
         uint8 c = uint8(_blockheader[offset]);
         require(c < 0xa1, "lists or long fields are not supported for difficulty");
-        offset += c<0x80 ? 1 : (c - 0x80 + 1);
+        offset += c < 0x80 ? 1 : (c - 0x80 + 1);
 
         // we fetch the blockNumber from the calculated offset
         blockNumber = getRlpUint(_blockheader, offset);
@@ -207,8 +207,12 @@ contract BlockhashRegistry {
 
         /// save to use for up to 200 blocks, exponential increase of gas-usage afterwards
         for (uint i = 0; i < _blockheaders.length; i++) {
+            /// we alway need to verify the blockHash and parentHash
+            /// but in addition we also verify the blockNumber.
+            /// This is just safety-check in case of detected hash collision which makes it almost impossible
+            /// to add an invalid header which might create the correct hash.
             (calcParent, calcBlockhash, calcBlockNumber) = getParentAndBlockhash(_blockheaders[i]);
-            if (calcBlockhash != currentBlockhash || calcParent == 0x0 || calcBlockNumber!=currentBlockNumber) {
+            if (calcBlockhash != currentBlockhash || calcParent == 0x0 || calcBlockNumber != currentBlockNumber) {
                 return 0x0;
             }
             currentBlockhash = calcParent;
