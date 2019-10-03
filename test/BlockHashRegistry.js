@@ -174,7 +174,7 @@ contract('BlockhashRegistry', async () => {
         for (let j = 0; j < chains.length; j++) {
             const allBlocks = realBlocks[chains[j]];
 
-            const numberBlocks = process.env.GITLAB_CI ? allBlocks.length : 10
+            const numberBlocks = 10 // process.env.GITLAB_CI ? allBlocks.length : 10
             //  const numberBlocks = allBlocks.length
             for (let i = 0; i < numberBlocks; i++) {
 
@@ -186,6 +186,7 @@ contract('BlockhashRegistry', async () => {
 
                 assert.strictEqual(result.parentHash, allBlocks[i].parentHash)
                 assert.strictEqual(result.bhash, allBlocks[i].hash)
+                assert.strictEqual(parseInt(result.blockNumber), parseInt(allBlocks[i].number))
 
             }
         }
