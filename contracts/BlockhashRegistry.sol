@@ -104,8 +104,8 @@ contract BlockhashRegistry {
     /// @notice returns the value from rlp encoded data.
     ///         This function is limited to only value up to 32 bytes length!
     /// @param _data rlp encoded data
-    /// @return the value and the next offset
-    function getRlpUint(bytes memory _data, uint _offset) public pure returns (uint value, uint nextOffset) {
+    /// @return the value
+    function getRlpUint(bytes memory _data, uint _offset) public pure returns (uint value) {
         /// get the byte at offset to figure out the length of the value
         uint8 c = uint8(_data[_offset]);
 
@@ -114,11 +114,15 @@ contract BlockhashRegistry {
         /// for the use cases (getting the blockNumber or difficulty) we can accept these limits.
         require(c < 0xa1, "lists or long fields are not supported");
         if (c<0x80)  // single byte-item
-          return (uint(c),_offset+1); // value = byte
+          return uint(c); // value = byte
 
-        uint len = c - 0x80; // length of the value
+        // length of the value
+        uint len = c - 0x80;
         // we skip the first 32 bytes since they contain the legth and add 1 because this byte contains the length of the value.
         uint dataOffset = _offset + 33;
+
+        /// check the range
+        require(_offset+len <= _data.length,"invalid offset");
 
         /// we are using assembly because we need to get the value of the next `len` bytes
         /// This is done by copying the bytes in the "scratch space" so we can take the first 32 bytes as value afterwards.
@@ -133,7 +137,7 @@ contract BlockhashRegistry {
             )
             value:=mload(0x0)
         }
-        return (value, _offset+1+len);
+        return value;
     }
 
     /// @notice returns the blockhash and the parent blockhash from the provided blockheader
@@ -167,14 +171,22 @@ contract BlockhashRegistry {
             )
         }
 
+        // verify parentHash
         require(parentHash != 0x0, "invalid parentHash");
         bhash = keccak256(_blockheader);
 
-        // we set the offset to the difficulty field which is fixed since all fields between them have a fixe length.
-        uint numberOffset = 0;
-        (,numberOffset) = getRlpUint(_blockheader, offset + 444);
-        require(numberOffset+32 < _blockheader.length,"invalid blockheader length");
-        (blockNumber,) = getRlpUint(_blockheader, numberOffset);
+        // get the blockNumber
+        // we set the offset to the difficulty field which is fixed since all fields between them have a fixed length.
+        offset += 444;
+
+        // we get the first byte for the difficulty field ( which is a field with a dynamic length)
+        // and calculate the length, because the next field is the blockNumber
+        uint8 c = uint8(_blockheader[offset]);
+        require(c < 0xa1, "lists or long fields are not supported for difficulty");
+        offset += c<0x80 ? 1 : (c - 0x80 + 1);
+
+        // we fetch the blockNumber from the calculated offset
+        blockNumber = getRlpUint(_blockheader, offset);
     }
 
     /// @notice starts with a given blockhash and its header and tries to recreate a (reverse) chain of blocks
