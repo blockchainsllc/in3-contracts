@@ -33,7 +33,8 @@ contract IN3WhiteList {
 
     ///DATA
     //in3 nodes list in mappings
-    mapping(address=>bool) public whiteListNodes;
+    mapping(address=>uint) public whiteListNodes;
+    address[] public whiteListNodesList;
 
     //for tracking this white listing belongs to which node registry
     address public nodeRegistry;
@@ -64,9 +65,11 @@ contract IN3WhiteList {
         external
         onlyOwner
     {
-        require(!whiteListNodes[_nodeAddr], "Node already exists in whitelist.");
+        require(whiteListNodes[_nodeAddr] == 0, "Node already exists in whitelist.");
+        
+        whiteListNodesList.push(_nodeAddr);
+        whiteListNodes[_nodeAddr] = whiteListNodesList.length;
 
-        whiteListNodes[_nodeAddr] = true;
         emit LogNodeWhiteListed(_nodeAddr);
     }
 
@@ -75,9 +78,19 @@ contract IN3WhiteList {
         external
         onlyOwner
     {
-        require(whiteListNodes[_nodeAddr], "Node doesnt exist in whitelist.");
+        require(whiteListNodes[_nodeAddr] > 0, "Node doesnt exist in whitelist.");
+
+        delete whiteListNodesList[ whiteListNodes[ _nodeAddr ] - 1 ];
+
+        uint length = nodes.length;
+        if (length>1) {
+            // move the last entry to the removed one.
+            address addr = whiteListNodesList[length - 1];
+            whiteListNodesList[whiteListNodes[ _nodeAddr ] - 1] = addr;}
 
         delete whiteListNodes[_nodeAddr];
+
+        whiteListNodesList.length--;
         emit LogNodeRemoved(_nodeAddr);
     }
 
