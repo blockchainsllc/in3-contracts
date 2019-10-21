@@ -150,6 +150,10 @@ contract NodeRegistryData {
         node.deposit = node.deposit - _amount;
     }
 
+    function adminTransferDeposit(address _to, uint _amount) external onlyLogicContract {
+        require(supportedToken.transfer(_to, _amount), "ERC20 token transfer failed");
+    }
+
     function adminSetNodeDeposit(address _signer, uint _newDeposit) external onlyLogicContract {
         SignerInformation memory si = signerIndex[_signer];
         In3Node storage node = nodes[si.index];
@@ -202,7 +206,8 @@ contract NodeRegistryData {
         address _signer,
         uint64 _weight,
         address _owner,
-        uint _deposit
+        uint _deposit,
+        uint _stage
     )
         external
         onlyLogicContract
@@ -210,8 +215,13 @@ contract NodeRegistryData {
         bytes32 urlHash = keccak256(bytes(_url));
 
         // sets the information of the owner
-        signerIndex[_signer].index = nodes.length;
-        signerIndex[_signer].owner = _owner;
+        SignerInformation storage si = signerIndex[_signer];
+
+        si.index = nodes.length;
+        si.owner = _owner;
+        si.stage = _stage;
+      //  signerIndex[_signer].index = nodes.length;
+       // signerIndex[_signer].owner = _owner;
 
         // add new In3Node
         In3Node memory m;
@@ -270,7 +280,6 @@ contract NodeRegistryData {
 
         SignerInformation storage si = signerIndex[_signer];
         In3Node memory n = nodes[si.index];
-
         _unregisterNodeInternal(si, n);
     }
 

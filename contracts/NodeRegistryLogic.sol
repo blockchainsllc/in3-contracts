@@ -71,10 +71,10 @@ contract NodeRegistryLogic {
     uint constant internal YEAR_DEFINITION = 1 days * 365;
 
     /// limit for ether per node in the 1st year
-    uint constant public MAX_ETHER_LIMIT_FIRST_YEAR = 50 ether;
+    uint constant public MAX_ETHER_LIMIT_FIRST_YEAR = 50000000000000000000; // 50 ether
 
     /// min deposit required for registering a node
-    uint constant public MIN_DEPOSIT = 10 finney;
+    uint constant public MIN_DEPOSIT = 10000000000000000; // 10 finney
 
     /// version: major minor fork(000) date(yyyy/mm/dd)
     uint constant public VERSION = 12300020190709;
@@ -107,6 +107,8 @@ contract NodeRegistryLogic {
         external
         onlyAdmin
     {
+        NodeRegistryData.SignerInformation memory si = nodeRegistryData.getSignerInformation(_signer);
+        require(si.stage == uint(Stages.Active), "wrong stage");
         nodeRegistryData.adminRemoveNodeFromRegistry(_signer);
     }
 
@@ -209,11 +211,26 @@ contract NodeRegistryLogic {
         registerNodeInternal(
             _url,
             _props,
-            signer,
+            _signer,
             msg.sender,
             _depositAmount,
             _weight
         );
+    }
+
+    function returnDeposit(address _signer) external {
+        NodeRegistryData.SignerInformation memory si = nodeRegistryData.getSignerInformation(_signer);
+        require(si.owner == msg.sender, "not the owner of the node");
+        require(si.stage == uint(Stages.DepositNotWithdrawn), "wrong stage");
+        require(si.depositAmount > 0, "nothing to transfer");
+        // solium-disable-next-line security/no-block-members
+        require(si.lockedTime <= block.timestamp, "deposit still locked"); // solhint-disable-line not-rely-on-time
+
+        uint depositAmount = si.depositAmount;
+
+        nodeRegistryData.adminSetSignerDeposit(_signer,0);
+        nodeRegistryData.adminSetStage(_signer, uint(Stages.NotInUse));
+        nodeRegistryData.adminTransferDeposit(msg.sender, depositAmount);
     }
 
     /// @notice reveals the wrongly provided blockhash, so that the node-owner will lose its deposit
@@ -257,13 +274,12 @@ contract NodeRegistryLogic {
             )
         );
 
-      //  uint convictBlockNumber = convictMapping[msg.sender][wrongBlockHashIdent];
         uint convictBlockNumber = nodeRegistryData.convictMapping(msg.sender, wrongBlockHashIdent);
         // as we cannot deploy the contract at block 0, a convicting at block 0 is also impossible
         // and as 0 is the standard value this also means that the convict hash is also wrong
         require(convictBlockNumber != 0, "wrong convict hash");
 
-        require(block.number >= convictBlockNumber + 2, "revealConvict still locked");
+        require(block.number > convictBlockNumber + 2, "revealConvict still locked");
         require(_v == 27 || _v == 28, "wrong signature");
         require(
             ecrecover(
@@ -294,7 +310,9 @@ contract NodeRegistryLogic {
 
         nodeRegistryData.adminSetStage(_signer, uint(Stages.Convicted));
 
-        // TODO: transfer
+        nodeRegistryData.adminTransferDeposit(msg.sender, deposit/2);
+
+
     }
 
     /// @notice changes the ownership of an in3-node
@@ -307,6 +325,11 @@ contract NodeRegistryLogic {
     function transferOwnership(address _signer, address _newOwner)
         external
     {
+        require(_newOwner != address(0x0), "0x0 not allowed");
+        NodeRegistryData.SignerInformation memory si = nodeRegistryData.getSignerInformation(_signer);
+        require(si.stage == uint(Stages.Active), "wrong stage");
+        require(si.owner == msg.sender, "not the owner");
+
         nodeRegistryData.transferOwnership(_signer, _newOwner);
     }
 
@@ -319,6 +342,9 @@ contract NodeRegistryLogic {
     function unregisteringNode(address _signer)
         external
     {
+        NodeRegistryData.SignerInformation memory si = nodeRegistryData.getSignerInformation(_signer);
+        require(si.stage == uint(Stages.Active), "wrong stage");
+        require(si.owner == msg.sender, "not the owner");
         nodeRegistryData.unregisteringNode(_signer);
     }
 
@@ -336,17 +362,31 @@ contract NodeRegistryLogic {
         string calldata _url,
         uint64 _props,
         uint64 _weight,
-        uint _deposit
+        uint _additionalDeposit
     )
         external
     {
-        _checkNodePropertiesInternal(_deposit);
+        NodeRegistryData.SignerInformation memory si = nodeRegistryData.getSignerInformation(_signer);
+        require(si.stage == uint(Stages.Active), "wrong stage");
+        require(si.owner == msg.sender, "not the owner");
+
+        NodeRegistryData.In3Node memory node = nodeRegistryData.getNodeInfromationBySigner(_signer);
+
+        uint deposit = node.deposit;
+
+        if (_additionalDeposit > 0) {
+            ERC20Interface supportedToken = nodeRegistryData.supportedToken();
+            require(supportedToken.transferFrom(msg.sender, address(nodeRegistryData), _additionalDeposit), "ERC20 token transfer failed");
+            deposit += _additionalDeposit;
+        }
+
+        _checkNodePropertiesInternal(deposit);
         nodeRegistryData.updateNode(
             _signer,
             _url,
             _props,
             _weight,
-            _deposit
+            deposit
         );
     }
 
@@ -361,14 +401,14 @@ contract NodeRegistryLogic {
         internal
     {
         ERC20Interface supportedToken = nodeRegistryData.supportedToken();
-
-        require(supportedToken.transferFrom(msg.sender, address(nodeRegistryData), _deposit), "ERC20 token transfer failed");
-
+  
+        require(supportedToken.transferFrom(_owner, address(nodeRegistryData), _deposit), "ERC20 token transfer failed");
+    
         require(_deposit >= MIN_DEPOSIT, "not enough deposit");
 
-        _checkNodePropertiesInternal(msg.value);
+        _checkNodePropertiesInternal(_deposit);
 
-        NodeRegistryData.SignerInformation memory si = nodeRegistryData.getSignerInformation(msg.sender);
+        NodeRegistryData.SignerInformation memory si = nodeRegistryData.getSignerInformation(_signer);
         bytes32 urlHash = keccak256(bytes(_url));
 
 
@@ -384,8 +424,10 @@ contract NodeRegistryLogic {
             _signer,
             _weight,
             _owner,
-            _deposit
+            _deposit,
+            uint(Stages.Active)
         );
+
     }
 
     /// @notice function to check whether the allowed amount of ether as deposit per server has been reached
