@@ -22,10 +22,11 @@ pragma experimental ABIEncoderV2;
 
 import "./BlockhashRegistry.sol";
 import "./NodeRegistryData.sol";
+import "./ERC20Interface.sol";
 
 
 /// @title Registry for IN3-nodes
-contract NodeRegistry {
+contract NodeRegistryLogic {
 
     /// node has been registered
     event LogNodeRegistered(string url, uint props, address signer, uint deposit);
@@ -88,12 +89,13 @@ contract NodeRegistry {
     /// @dev cannot be deployed in a genesis block
     constructor(BlockhashRegistry _blockRegistry, NodeRegistryData _nodeRegistryData) public {
 
-        require(address(_blockRegistry) != address(0x0), "no address provided");
+        require(address(_blockRegistry) != address(0x0), "no blockRegistry address provided");
         blockRegistry = _blockRegistry;
 
         // solium-disable-next-line security/no-block-members
         timestampAdminKeyActive = block.timestamp + YEAR_DEFINITION;  // solhint-disable-line not-rely-on-time
         adminKey = msg.sender;
+        require(address(_nodeRegistryData) != address(0x0), "no nodeRegistry address provided");
         nodeRegistryData = _nodeRegistryData;
     }
 
@@ -145,7 +147,6 @@ contract NodeRegistry {
         uint _deposit
     )
         external
-        payable
     {
 
         registerNodeInternal(
@@ -181,7 +182,6 @@ contract NodeRegistry {
         bytes32 _s
     )
         external
-        payable
     {
 
         bytes memory prefix = "\x19Ethereum Signed Message:\n32";
@@ -360,6 +360,9 @@ contract NodeRegistry {
     )
         internal
     {
+        ERC20Interface supportedToken = nodeRegistryData.supportedToken();
+
+        require(supportedToken.transferFrom(msg.sender, address(nodeRegistryData), _deposit), "ERC20 token transfer failed");
 
         require(_deposit >= MIN_DEPOSIT, "not enough deposit");
 

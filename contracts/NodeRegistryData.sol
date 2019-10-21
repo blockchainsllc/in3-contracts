@@ -113,14 +113,12 @@ contract NodeRegistryData {
 
     /// @notice constructor
     /// @dev cannot be deployed in a genesis block
-    constructor(address _owner) public {
-
-        require(address(_owner) != address(0x0), "no address provided");
+    constructor() public {
 
         // solium-disable-next-line security/no-block-members
         registryId = keccak256(abi.encodePacked(address(this), blockhash(block.number-1)));
-        ownerContract = _owner;
         timeout = 40 days;
+        ownerContract = msg.sender;
     }
 
     /// @notice removes an in3-server from the registry
@@ -164,6 +162,7 @@ contract NodeRegistryData {
     }
 
     function adminSetLogic(address _newLogic) external onlyLogicContract {
+        require(address(_newLogic) != address(0x0), "no address provided");
         ownerContract = _newLogic;
     }
 
