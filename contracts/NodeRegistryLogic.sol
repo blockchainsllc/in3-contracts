@@ -292,10 +292,10 @@ contract NodeRegistryLogic {
                 ),
                 _v, _r, _s) == _signer,
             "the block was not signed by the signer of the node");
+        NodeRegistryData.SignerInformation memory si = nodeRegistryData.getSignerInformation(_signer);
+        require(si.stage == uint(Stages.Active) || si.stage == uint(Stages.DepositNotWithdrawn), "wrong stage");
 
         emit LogNodeConvicted(_signer);
-
-        NodeRegistryData.SignerInformation memory si = nodeRegistryData.getSignerInformation(_signer);
 
         uint deposit = 0;
         if (si.stage == uint(Stages.Active)) {
