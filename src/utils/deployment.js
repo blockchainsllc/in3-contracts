@@ -119,9 +119,26 @@ const deployContracts = async (web3, privateKey) => {
     const nodeRegistryLogicDeployTx = await deployNodeRegistryLogic(web3, blockHashRegistryAddress, nodeRegistryDataAddress, pk)
     const nodeRegistryLogicAddress = nodeRegistryLogicDeployTx.contractAddress
 
+    const ERC20TokenDeployTx = await deployERC20Wrapper(web3, pk)
+    const ERC20TokenAddress = ERC20TokenDeployTx.contractAddress
+
     const bin = JSON.parse(fs.readFileSync('build/contracts/NodeRegistryData.json', 'utf8'))
 
     const nodeRegistryData = new web3.eth.Contract(bin.abi, nodeRegistryDataAddress)
+
+    nonce = await web3.eth.getTransactionCount(ethAcc.address)
+    gasPrice = await web3.eth.getGasPrice()
+    const txParamsSetERC20Token = {
+        from: ethAcc.address,
+        data: nodeRegistryData.methods.adminSetSupportedToken(ERC20TokenAddress).encodeABI(),
+        gas: 7000000,
+        nonce: nonce,
+        gasPrice: gasPrice,
+        to: nodeRegistryDataAddress
+    }
+
+    const signedSetToken = await web3.eth.accounts.signTransaction(txParamsSetERC20Token, ethAcc.privateKey);
+    await (web3.eth.sendSignedTransaction(signedSetToken.rawTransaction));
 
     nonce = await web3.eth.getTransactionCount(ethAcc.address)
     gasPrice = await web3.eth.getGasPrice()
@@ -134,15 +151,36 @@ const deployContracts = async (web3, privateKey) => {
         to: nodeRegistryDataAddress
     }
 
-    const signedTxSetLogic = await web3.eth.accounts.signTransaction(txParamsSetLogic, ethAcc.privateKey);
-    await (web3.eth.sendSignedTransaction(signedTxSetLogic.rawTransaction));
+    const signedSetLogic = await web3.eth.accounts.signTransaction(txParamsSetLogic, ethAcc.privateKey);
+    await (web3.eth.sendSignedTransaction(signedSetLogic.rawTransaction));
 
     return {
         blockhashRegistry: blockHashRegistryAddress,
         nodeRegistryLogic: nodeRegistryLogicAddress,
-        nodeRegistryData: nodeRegistryDataAddress
+        nodeRegistryData: nodeRegistryDataAddress,
+        ERC20Token: ERC20TokenAddress
     }
 
 }
 
-module.exports = { deployNodeRegistryLogic, deployBlockHashRegistry, deployNodeRegistryData, deployContracts }
+const deployERC20Wrapper = async (web3, privateKey) => {
+    const pk = privateKey || "0x4d5db4107d237df6a3d58ee5f70ae63d73d7658d4026f2eefd2f204c81682cb7"
+    const ethAcc = await web3.eth.accounts.privateKeyToAccount(pk);
+    const bin = JSON.parse(fs.readFileSync('build/contracts/ERC20Wrapper.json', 'utf8'))
+    const nonce = await web3.eth.getTransactionCount(ethAcc.address)
+    const gasPrice = await web3.eth.getGasPrice()
+    const transactionParams = {
+        from: ethAcc.address,
+        data: bin.bytecode,
+        gas: 7000000,
+        nonce: nonce,
+        gasPrice: gasPrice,
+        to: ''
+    }
+
+    const signedTx = await web3.eth.accounts.signTransaction(transactionParams, ethAcc.privateKey);
+    return web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+
+}
+
+module.exports = { deployNodeRegistryLogic, deployBlockHashRegistry, deployNodeRegistryData, deployContracts, deployERC20Wrapper }

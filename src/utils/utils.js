@@ -56,13 +56,12 @@ const handleTx = async (txParams, privatekey) => {
 
 
 
-const signForRegister = (url, props, timeout, weight, owner, pk) => {
+const signForRegister = (url, props, weight, owner, pk) => {
 
     const msgHash = ethUtil.keccak(
         Buffer.concat([
             in3Common.serialize.bytes(url),
             in3Common.serialize.uint64(props),
-            in3Common.serialize.uint64(timeout),
             in3Common.serialize.uint64(weight),
             in3Common.serialize.address(owner)
         ])
@@ -132,5 +131,23 @@ const signHash = (pk, msgHash) => {
         signatureBytes: in3Common.util.toHex(s.r) + in3Common.util.toHex(s.s).substr(2) + in3Common.util.toHex(s.v).substr(2)
     }
 }
+//0x0000000000000000000000008c0c01940b66940cf3ea16c5ebc5fa226dc8f777
+//0x0000000000000000000000008c0c01940b66940cf3ea16c5ebc5fa226dc8f7770000000000000000000000008c0c01940b66940cf3ea16c5ebc5fa226dc8f77701
+const signWithPrefix = (pk, msgHash) => {
 
-module.exports = { createAccount, handleTx, signForRegister, signBlock, createConvictHash, increaseTime, signHash }
+    const msgHash2 = ethUtil.keccak(in3Common.util.toHex("\x19Ethereum Signed Message:\n32") + in3Common.util.toHex(msgHash).substr(2))
+    const s = ethUtil.ecsign((msgHash2), in3Common.util.toBuffer(pk, 32))
+
+    return {
+        ...s,
+        address: in3Common.util.getAddress(pk),
+        msgHash: in3Common.util.toHex(msgHash, 32),
+        signature: in3Common.util.toHex(s.r) + in3Common.util.toHex(s.s).substr(2) + in3Common.util.toHex(s.v).substr(2),
+        r: in3Common.util.toHex(s.r),
+        s: in3Common.util.toHex(s.s),
+        v: s.v
+    }
+}
+
+
+module.exports = { createAccount, handleTx, signForRegister, signBlock, createConvictHash, increaseTime, signHash, signWithPrefix }
