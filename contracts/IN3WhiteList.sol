@@ -35,6 +35,7 @@ contract IN3WhiteList {
     //in3 nodes list in mappings
     mapping(address=>uint) public whiteListNodes;
     bytes public whiteListNodesList;
+    bytes32 proofHash;
 
     //for tracking this white listing belongs to which node registry
     address public nodeRegistry;
@@ -72,6 +73,8 @@ contract IN3WhiteList {
             whiteListNodesList.push(newAddr[i]);
         }
         whiteListNodes[_nodeAddr] = whiteListNodesList.length;
+
+        proofHash = keccak256(abi.encodePacked(whiteListNodesList));
 
         emit LogNodeWhiteListed(_nodeAddr);
     }
