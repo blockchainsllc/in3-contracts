@@ -66,7 +66,7 @@ contract IN3WhiteList {
         onlyOwner
     {
         require(whiteListNodes[_nodeAddr] == 0, "Node already exists in whitelist.");
-        
+
         whiteListNodesList.push(_nodeAddr);
         whiteListNodes[_nodeAddr] = whiteListNodesList.length;
 
@@ -78,19 +78,16 @@ contract IN3WhiteList {
         external
         onlyOwner
     {
-        require(whiteListNodes[_nodeAddr] > 0, "Node doesnt exist in whitelist.");
-
-        delete whiteListNodesList[ whiteListNodes[ _nodeAddr ] - 1 ];
+        uint location = whiteListNodes[_nodeAddr];  //location is not zero based index stored in mappings, it starts from 1
+        require(location > 0, "Node doesnt exist in whitelist.");
 
         uint length = whiteListNodesList.length;
-        if (length>1) {
-            // move the last entry to the removed one.
-            address addr = whiteListNodesList[length - 1];
-            whiteListNodesList[whiteListNodes[ _nodeAddr ] - 1] = addr;}
+        if (location!=length) {
+            whiteListNodesList[location-1] = whiteListNodesList[length-1];}
 
-        delete whiteListNodes[_nodeAddr];
-
+        delete whiteListNodesList[length-1];
         whiteListNodesList.length--;
+
         emit LogNodeRemoved(_nodeAddr);
     }
 
