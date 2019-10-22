@@ -82,7 +82,7 @@ contract IN3WhiteList {
 
         delete whiteListNodesList[ whiteListNodes[ _nodeAddr ] - 1 ];
 
-        uint length = nodes.length;
+        uint length = whiteListNodesList.length;
         if (length>1) {
             // move the last entry to the removed one.
             address addr = whiteListNodesList[length - 1];
@@ -94,9 +94,14 @@ contract IN3WhiteList {
         emit LogNodeRemoved(_nodeAddr);
     }
 
-    /*function nodeListBytes() public pure returns (bytes memory) {
+    function nodeListBytes() public view returns (bytes memory b) {
+        b = new bytes(whiteListNodesList.length*20);
 
-        return abi.encodePacked(a);
-    }*/
+        uint c = 0;
+        for (uint j = 0; j < whiteListNodesList.length; j++) {
+            for (uint i = 0; i < 20; i++) {
+                b[c++] = byte(uint8(uint(whiteListNodesList[j]) / (2**(8*(19 - i)))));}
+        }
+    }
 
 }
