@@ -65,6 +65,7 @@ contract NodeRegistryLogic {
     address public adminKey;
 
     uint public updateTimeout;
+    
     address public pendingNewLogic;
 
     /// capping the max deposit timeout on 1 year
@@ -107,9 +108,15 @@ contract NodeRegistryLogic {
         external
         onlyAdmin
     {
+        // solium-disable-next-line security/no-block-members
+        require(block.timestamp <= timestampAdminKeyActive, "only in 1st year"); // solhint-disable-line not-rely-on-time
+
         NodeRegistryData.SignerInformation memory si = nodeRegistryData.getSignerInformation(_signer);
         require(si.stage == uint(Stages.Active), "wrong stage");
-        nodeRegistryData.adminRemoveNodeFromRegistry(_signer);
+
+        nodeRegistryData.unregisteringNode(_signer);
+        nodeRegistryData.adminSetStage(_signer, uint(Stages.DepositNotWithdrawn));
+
     }
 
     function adminUpdateLogic(address _newLogic) external onlyAdmin {
@@ -228,8 +235,13 @@ contract NodeRegistryLogic {
 
         uint depositAmount = si.depositAmount;
 
-        nodeRegistryData.adminSetSignerDeposit(_signer,0);
-        nodeRegistryData.adminSetStage(_signer, uint(Stages.NotInUse));
+        si.lockedTime = 0;
+        si.owner = address(0x0);
+        si.stage = 0;
+        si.depositAmount = 0;
+        si.index = 0;
+
+        nodeRegistryData.adminSetSignerInfo(_signer, si);
         nodeRegistryData.adminTransferDeposit(msg.sender, depositAmount);
     }
 
@@ -296,7 +308,7 @@ contract NodeRegistryLogic {
         require(si.stage == uint(Stages.Active) || si.stage == uint(Stages.DepositNotWithdrawn), "wrong stage");
 
         emit LogNodeConvicted(_signer);
-
+    
         uint deposit = 0;
         if (si.stage == uint(Stages.Active)) {
             NodeRegistryData.In3Node memory in3Node = nodeRegistryData.getNodeInfromationBySigner(_signer);
@@ -311,7 +323,6 @@ contract NodeRegistryLogic {
         nodeRegistryData.adminSetStage(_signer, uint(Stages.Convicted));
 
         nodeRegistryData.adminTransferDeposit(msg.sender, deposit/2);
-
 
     }
 
@@ -346,6 +357,9 @@ contract NodeRegistryLogic {
         require(si.stage == uint(Stages.Active), "wrong stage");
         require(si.owner == msg.sender, "not the owner");
         nodeRegistryData.unregisteringNode(_signer);
+        
+        nodeRegistryData.adminSetStage(_signer, uint(Stages.DepositNotWithdrawn));
+
     }
 
     /// @notice updates a node by adding the msg.value to the deposit and setting the props or timeout

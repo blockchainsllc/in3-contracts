@@ -1,6 +1,5 @@
 pragma solidity 0.5.10;
 
-
 interface ERC20Interface {
     function transfer(address to, uint256 value) external returns (bool);
     function approve(address spender, uint256 value) external returns (bool);

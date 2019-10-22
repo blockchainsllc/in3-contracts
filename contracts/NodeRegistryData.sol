@@ -154,6 +154,10 @@ contract NodeRegistryData {
         require(supportedToken.transfer(_to, _amount), "ERC20 token transfer failed");
     }
 
+    function adminSetSignerInfo(address _signer, SignerInformation memory _si) public onlyLogicContract {
+        signerIndex[_signer] = _si;
+    }
+
     function adminSetNodeDeposit(address _signer, uint _newDeposit) external onlyLogicContract {
         SignerInformation memory si = signerIndex[_signer];
         In3Node storage node = nodes[si.index];
