@@ -86,7 +86,7 @@ contract IN3WhiteList {
 
         uint length = whiteListNodesList.length-1;
 
-        for (uint i = 0;i<=20;i++) {
+        for (uint i = 0;i<20;i++) {
             if (location!=length) {
                 whiteListNodesList[location-i-1] = whiteListNodesList[length-i];}
             delete whiteListNodesList[length-i];
