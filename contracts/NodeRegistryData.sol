@@ -84,8 +84,10 @@ contract NodeRegistryData {
     /// In this case it is also recommend to not sign requests until the node get his deposits from the forked contracts
     bytes32 public registryId;
 
+    /// timeout for all nodes until they can receive their deposit after unregistering
     uint public timeout;
 
+    /// tokenContract to be used
     ERC20Wrapper public supportedToken;
 
     /// add your additional storage here. If you add information before this line you will break in3 nodelist
@@ -114,7 +116,6 @@ contract NodeRegistryData {
     /// @notice constructor
     /// @dev cannot be deployed in a genesis block
     constructor() public {
-
         // solium-disable-next-line security/no-block-members
         registryId = keccak256(abi.encodePacked(address(this), blockhash(block.number-1)));
         timeout = 40 days;
@@ -135,41 +136,69 @@ contract NodeRegistryData {
 
     }
 
-    function adminTransferDeposit(address _to, uint _amount) external onlyLogicContract {
-        require(supportedToken.transfer(_to, _amount), "ERC20 token transfer failed");
+    /// @notice sets the logic-address / owner of the contract
+    /// @dev used to update the corresponding logic contract
+    /// @dev only callable by the current logic contract
+    /// @param _newLogic the new logic-contract / owner
+    /// @return true if successfull
+    function adminSetLogic(address _newLogic) external onlyLogicContract returns (bool) {
+        require(address(_newLogic) != address(0x0), "no address provided");
+        ownerContract = _newLogic;
+        return true;
     }
 
-    function adminSetSignerInfo(address _signer, SignerInformation memory _si) public onlyLogicContract {
-        signerIndex[_signer] = _si;
-    }
-
-    function adminSetNodeDeposit(address _signer, uint _newDeposit) external onlyLogicContract {
+    /// @notice sets the deposit of the node
+    /// @dev only callable by the logic contract
+    /// @dev used to delete the deposit after being being convicted
+    /// @param _signer the signer for the node
+    /// @param _newDeposit the new deposit
+    /// @return true if successfull
+    function adminSetNodeDeposit(address _signer, uint _newDeposit) external onlyLogicContract returns (bool) {
         SignerInformation memory si = signerIndex[_signer];
         In3Node storage node = nodes[si.index];
         node.deposit = _newDeposit;
+        return true;
     }
 
-    function adminSetSignerDeposit(address _signer, uint _newDeposit) external onlyLogicContract {
-        SignerInformation storage si = signerIndex[_signer];
-        si.depositAmount = _newDeposit;
-    }
-
-    function adminSetLogic(address _newLogic) external onlyLogicContract {
-        require(address(_newLogic) != address(0x0), "no address provided");
-        ownerContract = _newLogic;
-    }
-
-    function adminSetStage(address _signer, uint _stage) external onlyLogicContract {
+    /// @notice sets the stage of a certain signer
+    /// @dev only callable by the current logic contract
+    /// @param _signer the signer-account for the stage to be set
+    /// @param _stage the new stage
+    /// @return true if successfull
+    function adminSetStage(address _signer, uint _stage) external onlyLogicContract returns (bool) {
         SignerInformation storage si = signerIndex[_signer];
         si.stage = _stage;
+        return true;
     }
 
-    function adminSetTimeout(uint _newTimeout) external onlyLogicContract {
-        timeout = _newTimeout;
-    }
-
-    function adminSetSupportedToken(ERC20Wrapper _newToken) external onlyLogicContract {
+    /// @notice changes the supported token
+    /// @dev only callable by the current logic contract
+    /// @param _newToken the new token-contract
+    /// @return true if successfull
+    function adminSetSupportedToken(ERC20Wrapper _newToken) external onlyLogicContract returns (bool) {
+        require(address(_newToken) != address(0x0), "0x0 is invalid");
         supportedToken = _newToken;
+        return true;
+    }
+
+    /// @notice sets a new timeout for all node until they can recive their deposit
+    /// @dev only callable by the current logic contract
+    /// @param _newTimeout the new timeout
+    /// @return true if successfull
+    function adminSetTimeout(uint _newTimeout) external onlyLogicContract returns (bool) {
+        timeout = _newTimeout;
+        return true;
+    }
+
+    /// @notice transfers tokens to an address
+    /// @dev used when returning deposit or rewarding successfull convicts
+    /// @dev only callable by the logic contract
+    /// @param _to the address that shall receive tokens
+    /// @param _amount the amount of tokens to be transfered
+    /// @return true when successfull
+    function adminTransferDeposit(address _to, uint _amount) external onlyLogicContract returns (bool) {
+        require(supportedToken.transfer(_to, _amount), "ERC20 token transfer failed");
+        return true;
     }
 
     /// @notice commits a blocknumber and a hash
@@ -181,14 +210,15 @@ contract NodeRegistryData {
     }
 
     /// @notice register a new node as a owner using a different signer address
+    /// @dev only callable by the logic contract
     /// @param _url the url of the node, has to be unique
     /// @param _props properties of the node
     /// @param _signer the signer of the in3-node
     /// @param _weight how many requests per second the node is able to handle
-    /// @dev will call the registerNodeInteral function
-    /// @dev in order to prove that the owner has controll over the signer-address he has to sign a message
-    /// @dev which is calculated by the hash of the url, properties, timeout, weight and the owner
-    /// @dev will revert when a wrong signature has been provided
+    /// @param _owner the owner of the node
+    /// @param _deposit the deposit of the in3-node (in erc20 token)
+    /// @param _stage the stage of the in3-node
+    /// @return true if successfull
     function registerNodeFor(
         string calldata _url,
         uint192 _props,
@@ -200,6 +230,7 @@ contract NodeRegistryData {
     )
         external
         onlyLogicContract
+        returns (bool)
     {
         bytes32 urlHash = keccak256(bytes(_url));
 
@@ -209,8 +240,6 @@ contract NodeRegistryData {
         si.index = nodes.length;
         si.owner = _owner;
         si.stage = _stage;
-      //  signerIndex[_signer].index = nodes.length;
-       // signerIndex[_signer].owner = _owner;
 
         // add new In3Node
         In3Node memory m;
@@ -237,50 +266,52 @@ contract NodeRegistryData {
             _signer,
             _deposit
         );
+
+        return true;
     }
 
     /// @notice changes the ownership of an in3-node
+    /// @dev only callable by the logic contract
     /// @param _signer the signer-address of the in3-node, used as an identifier
     /// @param _newOwner the new owner
-    /// @dev reverts when trying to change ownership of an inactive node
-    /// @dev reverts when trying to pass ownership to 0x0
-    /// @dev reverts when the sender is not the current owner
-    /// @dev reverts when inacitivity is claimed
+    /// @return true if successfull
     function transferOwnership(address _signer, address _newOwner)
         external
         onlyLogicContract
+        returns (bool)
     {
         SignerInformation storage si = signerIndex[_signer];
         emit LogOwnershipChanged(_signer, si.owner, _newOwner);
 
         si.owner = _newOwner;
+        return true;
     }
 
-    /// @notice a node owner can unregister a node, removing it from the nodeList
-    /// @notice doing so will also lock his deposit for the timeout of the node
+    /// @notice removes a node from the registry
+    /// @dev only callable by the logic contract
     /// @param _signer the signer of the in3-node
-    /// @dev reverts when the provided address is not an in3-signer
-    /// @dev reverts when the node is already unregistering
-    /// @dev reverts when not called by the owner of the node
+    /// @return true if successfull
     function unregisteringNode(address _signer)
         external
         onlyLogicContract
+        returns (bool)
     {
 
         SignerInformation storage si = signerIndex[_signer];
         In3Node memory n = nodes[si.index];
         _unregisterNodeInternal(si, n);
+        return true;
     }
 
     /// @notice updates a node by adding the msg.value to the deposit and setting the props or timeout
+    /// @dev reverts when trying to change the url to an already existing one
+    /// @dev only callable by the logic contract
     /// @param _signer the signer-address of the in3-node, used as an identifier
     /// @param _url the url, will be changed if different from the current one
     /// @param _props the new properties, will be changed if different from the current onec
     /// @param _weight the amount of requests per second the node is able to handle
-    /// @dev reverts when the sender is not the owner of the node
-    /// @dev reverts when the signer does not own a node
-    /// @dev reverts when trying to increase the timeout above 10 years
-    /// @dev reverts when trying to change the url to an already existing one
+    /// @param _deposit the deposit of the in3-node
+    /// @return true if successfull
     function updateNode(
         address _signer,
         string calldata _url,
@@ -290,6 +321,7 @@ contract NodeRegistryData {
     )
         external
         onlyLogicContract
+        returns (bool)
     {
         SignerInformation memory si = signerIndex[_signer];
 
@@ -334,16 +366,20 @@ contract NodeRegistryData {
             _signer,
             node.deposit
         );
+
+        return true;
     }
 
+    /// @notice returns the SignerInformation of a signer
+    /// @param _signer the signer for the information to get
+    /// @return the SignerInformation for the signer
     function getSignerInformation(address _signer) external view returns (SignerInformation memory) {
         return signerIndex[_signer];
     }
 
-    function getNodeInformationByIndex(uint _index) external view returns (In3Node memory) {
-        return nodes[_index];
-    }
-
+    /// @notice returns the In3Node-struct for a signer
+    /// @param _signer the signer for the information to get
+    /// @return the In3Node-struct for that signer
     function getNodeInfromationBySigner(address _signer) external view returns (In3Node memory) {
         return nodes[signerIndex[_signer].index];
     }
@@ -352,6 +388,18 @@ contract NodeRegistryData {
     /// @return the number of total in3-nodes
     function totalNodes() external view returns (uint) {
         return nodes.length;
+    }
+
+    /// @notice sets the signerInformation for a signer
+    /// @dev only callable by the logic contract
+    /// @dev gets used for updating the information after returning the deposit
+    /// @dev public-visibility due to passing a struct to the function
+    /// @param _signer the address for the information to be set
+    /// @param _si the new signerInformation
+    /// @return true when successfull
+    function adminSetSignerInfo(address _signer, SignerInformation memory _si) public onlyLogicContract returns (bool) {
+        signerIndex[_signer] = _si;
+        return true;
     }
 
     /// @notice calculates the sha3 hash of the most important properties in order to make the proof faster

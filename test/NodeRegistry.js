@@ -31,8 +31,6 @@ contract('NodeRegistry', async () => {
 
     it("should return the correct registryId", async () => {
 
-        const txBH = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
-
         const block = await web3.eth.getBlock("latest")
 
         const tx = await deployment.deployNodeRegistryData(new Web3(web3.currentProvider))
@@ -204,15 +202,8 @@ contract('NodeRegistry', async () => {
 
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk2)
 
-        //   assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData }, pk2).catch(_ => false))
+        assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData }, pk2).catch(_ => false))
         let failed = false
-        try {
-            await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData }, pk2)
-        } catch (e) {
-            console.log(e)
-            failed = true
-        }
-        assert.isTrue(failed)
     })
 
     it("should fail trying to register a node with the same signer twice", async () => {
@@ -1278,15 +1269,8 @@ contract('NodeRegistry', async () => {
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataTwo, }, pk2)
 
         const txDataUpdate = nodeRegistryLogic.methods.updateNode(ethAcc.address, "#2", 32000, 2000, 0).encodeABI()
-        // assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataUpdate }, pk).catch(_ => false))
-        let failed = false
+        assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataUpdate }, pk).catch(_ => false))
 
-        try { await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataUpdate }, pk) }
-        catch (e) {
-            console.log(e)
-            failed = true
-        }
-        assert.isTrue(failed)
     })
 
     it("should be able to register a node for a different signer", async () => {
@@ -2796,6 +2780,150 @@ contract('NodeRegistry', async () => {
 
         const txDataRemovalTwo = nodeRegistryLogic.methods.adminRemoveNodeFromRegistry(web3.eth.accounts.privateKeyToAccount(pk2).address).encodeABI()
         assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataRemovalTwo }, deployKey).catch(_ => false))
+
+    })
+    it("should update and active new logic contract", async () => {
+        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const contracts = await deployment.deployContracts(web3, deployKey)
+        const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
+        const nodeRegistryData = new web3.eth.Contract(NodeRegistryData.abi, contracts.nodeRegistryData)
+
+        assert.strictEqual(await nodeRegistryLogic.methods.pendingNewLogic().call(), "0x0000000000000000000000000000000000000000")
+        assert.strictEqual(await nodeRegistryLogic.methods.updateTimeout().call(), "0")
+
+        const adminUpdateTx = nodeRegistryLogic.methods.adminUpdateLogic("0x0000000000000000000000000000000000000001").encodeABI()
+        await utils.handleTx({ to: contracts.nodeRegistryLogic, data: adminUpdateTx, }, deployKey)
+
+        const block = await web3.eth.getBlock("latest")
+        const calcLockedTime = block.timestamp + 47 * 86400
+
+        assert.strictEqual(await nodeRegistryLogic.methods.pendingNewLogic().call(), "0x0000000000000000000000000000000000000001")
+        assert.strictEqual(await nodeRegistryLogic.methods.updateTimeout().call(), "" + calcLockedTime)
+
+        await utils.increaseTime(web3, 47 * 86400 + 1)
+
+        const activeTxData = nodeRegistryLogic.methods.activateNewLogic().encodeABI()
+        await utils.handleTx({ to: contracts.nodeRegistryLogic, data: activeTxData }, deployKey)
+
+        assert.strictEqual(await nodeRegistryData.methods.ownerContract().call(), "0x0000000000000000000000000000000000000001")
+
+    })
+
+    it("should fail updating and activating new logic contract when timeout it not yet over", async () => {
+        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const contracts = await deployment.deployContracts(web3, deployKey)
+        const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
+
+        const adminUpdateTx = nodeRegistryLogic.methods.adminUpdateLogic("0x0000000000000000000000000000000000000001").encodeABI()
+        await utils.handleTx({ to: contracts.nodeRegistryLogic, data: adminUpdateTx, }, deployKey)
+
+        await utils.increaseTime(web3, 44 * 86400 + 1)
+
+        const activeTxData = nodeRegistryLogic.methods.activateNewLogic().encodeABI()
+        assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: activeTxData }, deployKey).catch(_ => false))
+    })
+
+    it("should fail activating when no new contract is set", async () => {
+        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const contracts = await deployment.deployContracts(web3, deployKey)
+        const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
+
+        const activeTxData = nodeRegistryLogic.methods.activateNewLogic().encodeABI()
+        assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: activeTxData }, deployKey).catch(_ => false))
+    })
+
+    it("should fail trying set 0x0 as new logic contract", async () => {
+        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const contracts = await deployment.deployContracts(web3, deployKey)
+        const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
+
+        const adminUpdateTx = nodeRegistryLogic.methods.adminUpdateLogic("0x0000000000000000000000000000000000000000").encodeABI()
+        assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: adminUpdateTx, }, deployKey).catch(_ => false))
+    })
+
+    it("should fail trying set 0x0 as new token contract", async () => {
+        const deployKey = await utils.createAccount(null, '400000000000000000000')
+
+        const deployTx = await deployment.deployNodeRegistryData(web3, deployKey)
+        const nodeRegistryDataAddress = deployTx.contractAddress
+        const nodeRegistry = new web3.eth.Contract(NodeRegistryData.abi, nodeRegistryDataAddress)
+
+        const adminUpdateTx = nodeRegistry.methods.adminSetSupportedToken("0x0000000000000000000000000000000000000000").encodeABI()
+        assert.isFalse(await utils.handleTx({ to: nodeRegistryDataAddress, data: adminUpdateTx, }, deployKey).catch(_ => false))
+    })
+
+    it("should only change timeout of data as admin/owner", async () => {
+        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const randomKey = await utils.createAccount()
+
+        const deployTx = await deployment.deployNodeRegistryData(web3, deployKey)
+
+        const nodeRegistryDataAddress = deployTx.contractAddress
+
+        const nodeRegistry = new web3.eth.Contract(NodeRegistryData.abi, nodeRegistryDataAddress)
+
+        const adminTimeoutTx = nodeRegistry.methods.adminSetTimeout(86400).encodeABI()
+
+        assert.strictEqual(await nodeRegistry.methods.timeout().call(), "3456000") // 40 days
+
+        assert.isFalse(await utils.handleTx({ to: nodeRegistryDataAddress, data: adminTimeoutTx, }, randomKey).catch(_ => false))
+        await utils.handleTx({ to: nodeRegistryDataAddress, data: adminTimeoutTx, }, deployKey)
+        assert.strictEqual(await nodeRegistry.methods.timeout().call(), "86400") // 1 day
+
+    })
+
+    it("should prevent datacontract to change to 0x0 as owner", async () => {
+        const deployKey = await utils.createAccount(null, '400000000000000000000')
+
+        const deployTx = await deployment.deployNodeRegistryData(web3, deployKey)
+
+        const nodeRegistryDataAddress = deployTx.contractAddress
+
+        const nodeRegistry = new web3.eth.Contract(NodeRegistryData.abi, nodeRegistryDataAddress)
+
+        const txData = nodeRegistry.methods.adminSetLogic("0x0000000000000000000000000000000000000000").encodeABI()
+        assert.isFalse(await utils.handleTx({ to: nodeRegistryDataAddress, data: txData, }, deployKey).catch(_ => false))
+
+    })
+
+    it("should fail in data contract when erc-token transfers fails", async () => {
+        const deployKey = await utils.createAccount(null, '400000000000000000000')
+
+        const deployTxDataContract = await deployment.deployNodeRegistryData(web3, deployKey)
+        const nodeRegistryDataAddress = deployTxDataContract.contractAddress
+        const nodeRegistry = new web3.eth.Contract(NodeRegistryData.abi, nodeRegistryDataAddress)
+
+        const erc20deployTx = await deployment.deployERC20Wrapper(web3, deployKey)
+        const erc20Address = erc20deployTx.contractAddress
+
+        const erc20data = nodeRegistry.methods.adminSetSupportedToken(erc20Address).encodeABI()
+        await utils.handleTx({ to: nodeRegistryDataAddress, data: erc20data, }, deployKey)
+
+        const tokenTransferData = nodeRegistry.methods.adminTransferDeposit(erc20Address, 10).encodeABI()
+        assert.isFalse(await utils.handleTx({ to: nodeRegistryDataAddress, data: tokenTransferData, }, deployKey).catch(_ => false))
+
+    })
+
+
+    it("should fail in data contract when removing non existing node", async () => {
+        const deployKey = await utils.createAccount(null, '400000000000000000000')
+
+        const deployTxDataContract = await deployment.deployNodeRegistryData(web3, deployKey)
+        const nodeRegistryDataAddress = deployTxDataContract.contractAddress
+        const nodeRegistry = new web3.eth.Contract(NodeRegistryData.abi, nodeRegistryDataAddress)
+
+        const unregisterData = nodeRegistry.methods.adminRemoveNodeFromRegistry("0x0000000000000000000000000000000000000010").encodeABI()
+        //   assert.isFalse(await utils.handleTx({ to: nodeRegistryDataAddress, data: tokenTransferData, }, deployKey).catch(_ => false))
+        let failed = false
+
+        try {
+            await utils.handleTx({ to: nodeRegistryDataAddress, data: unregisterData, }, deployKey)
+        } catch (e) {
+            console.log(e)
+            failed = true
+        }
+
+        assert.isTrue(failed)
 
     })
 

@@ -43,6 +43,8 @@ contract NodeRegistryLogic {
     /// the ownership of a node changed
     event LogOwnershipChanged(address signer, address oldOwner, address newOwner);
 
+    event LogNewPendingContract(address newPendingContract);
+
     /// Different Stages a node can have
     enum Stages {
         NotInUse,                           /// node is not in use, so a new node with the same address can be registered
@@ -64,8 +66,10 @@ contract NodeRegistryLogic {
     /// admin-key to remove some server, only usable within the 1st year
     address public adminKey;
 
+    /// timestamp when an update of the logic-contract can be applied
     uint public updateTimeout;
 
+    /// address of an updated logic contract to be applied
     address public pendingNewLogic;
 
     /// capping the max deposit timeout on 1 year
@@ -87,6 +91,7 @@ contract NodeRegistryLogic {
 
     /// @notice constructor
     /// @param _blockRegistry address of a BlockhashRegistry-contract
+    /// @param _nodeRegistryData address of the nodeRegistryData-contract
     /// @dev cannot be deployed in a genesis block
     constructor(BlockhashRegistry _blockRegistry, NodeRegistryData _nodeRegistryData) public {
 
@@ -100,9 +105,20 @@ contract NodeRegistryLogic {
         nodeRegistryData = _nodeRegistryData;
     }
 
+    /// @notice applies the pending update
+    /// @dev this will remove the current contract as owner of the NodeRegistryData
+    /// @dev only callable after 47 since the new logicContract has been registered
+    function activateNewLogic() external {
+        require(updateTimeout != 0, "no timeout set");
+        // solium-disable-next-line security/no-block-members
+        require(block.timestamp > updateTimeout, "timeout not yet over"); // solhint-disable-line not-rely-on-time
+
+        nodeRegistryData.adminSetLogic(pendingNewLogic);
+    }
+
     /// @notice removes an in3-server from the registry
     /// @param _signer the signer-address of the in3-node
-    /// @dev only callable by the unregisterKey-account
+    /// @dev only callable by the adminKey-account
     /// @dev only callable in the 1st year after deployment
     function adminRemoveNodeFromRegistry(address _signer)
         external
@@ -119,21 +135,19 @@ contract NodeRegistryLogic {
 
     }
 
+    /// @notice sets the address for a new (pending) logic
+    ///         the update can only be applied after 47 days,
+    ///         giving all the nodes enough time to unregister their node if they dislike the update
+    /// @dev only callable by the owner of the contract
+    /// @param _newLogic the address of the new logic contract
     function adminUpdateLogic(address _newLogic) external onlyAdmin {
-        require(pendingNewLogic == address(0x0), "new contract already set");
-        require(updateTimeout == 0, "timeout already set");
+        require(_newLogic != address(0x0), "0x address not supported");
+
         // solium-disable-next-line security/no-block-members
-        updateTimeout = block.timestamp + 42 days; // solhint-disable-line not-rely-on-time
+        updateTimeout = block.timestamp + 47 days; // solhint-disable-line not-rely-on-time
         pendingNewLogic = _newLogic;
-    }
 
-    function activateNewLogic() external {
-        require(updateTimeout != 0, "no timeout set");
-        // solium-disable-next-line security/no-block-members
-        require(block.timestamp > updateTimeout, "timeout not yet over"); // solhint-disable-line not-rely-on-time
-        require(pendingNewLogic == address(0x0), "new contract already set");
-
-        nodeRegistryData.adminSetLogic(pendingNewLogic);
+        emit LogNewPendingContract(_newLogic);
     }
 
     /// @notice commits a blocknumber and a hash
@@ -145,10 +159,11 @@ contract NodeRegistryLogic {
     }
 
     /// @notice register a new node with the sender as owner
+    /// @dev the supported tokens have to be approved by the owner first
     /// @param _url the url of the node, has to be unique
     /// @param _props properties of the node
     /// @param _weight how many requests per second the node is able to handle
-    /// @dev will call the registerNodeInteral function
+    /// @param _deposit the deposit in erc20 tokens
     function registerNode(
         string calldata _url,
         uint192 _props,
@@ -169,16 +184,18 @@ contract NodeRegistryLogic {
     }
 
     /// @notice register a new node as a owner using a different signer address
+    /// @dev the supported tokens have to be approved by the owner first
     /// @param _url the url of the node, has to be unique
     /// @param _props properties of the node
     /// @param _signer the signer of the in3-node
     /// @param _weight how many requests per second the node is able to handle
+    /// @param _depositAmount deposit in erc20 tokens
     /// @param _v v of the signed message
     /// @param _r r of the signed message
     /// @param _s s of the signed message
     /// @dev will call the registerNodeInteral function
     /// @dev in order to prove that the owner has controll over the signer-address he has to sign a message
-    /// @dev which is calculated by the hash of the url, properties, timeout, weight and the owner
+    /// @dev which is calculated by the hash of the url, properties, weight and the owner
     /// @dev will revert when a wrong signature has been provided
     function registerNodeFor(
         string calldata _url,
@@ -225,11 +242,13 @@ contract NodeRegistryLogic {
         );
     }
 
+    /// @notice returns the deposit of a former node after the timeout has passed
+    /// @dev only callable by the owner of the former signer
+    /// @param _signer the former signer
     function returnDeposit(address _signer) external {
         NodeRegistryData.SignerInformation memory si = nodeRegistryData.getSignerInformation(_signer);
         require(si.owner == msg.sender, "not the owner of the node");
         require(si.stage == uint(Stages.DepositNotWithdrawn), "wrong stage");
-        require(si.depositAmount > 0, "nothing to transfer");
         // solium-disable-next-line security/no-block-members
         require(si.lockedTime <= block.timestamp, "deposit still locked"); // solhint-disable-line not-rely-on-time
 
@@ -308,19 +327,22 @@ contract NodeRegistryLogic {
         require(si.stage == uint(Stages.Active) || si.stage == uint(Stages.DepositNotWithdrawn), "wrong stage");
 
         emit LogNodeConvicted(_signer);
-    
+
         uint deposit = 0;
         if (si.stage == uint(Stages.Active)) {
             NodeRegistryData.In3Node memory in3Node = nodeRegistryData.getNodeInfromationBySigner(_signer);
             deposit = in3Node.deposit;
             nodeRegistryData.adminSetNodeDeposit(_signer, 0);
             nodeRegistryData.adminRemoveNodeFromRegistry(_signer);
+            nodeRegistryData.adminSetStage(_signer, uint(Stages.Convicted));
+
         } else {
             deposit = si.depositAmount;
-            nodeRegistryData.adminSetSignerDeposit(_signer, 0);
-        }
 
-        nodeRegistryData.adminSetStage(_signer, uint(Stages.Convicted));
+            si.stage = uint(Stages.Convicted);
+            si.depositAmount = 0;
+            nodeRegistryData.adminSetSignerInfo(_signer, si);
+        }
 
         nodeRegistryData.adminTransferDeposit(msg.sender, deposit/2);
 
@@ -332,7 +354,6 @@ contract NodeRegistryLogic {
     /// @dev reverts when trying to change ownership of an inactive node
     /// @dev reverts when trying to pass ownership to 0x0
     /// @dev reverts when the sender is not the current owner
-    /// @dev reverts when inacitivity is claimed
     function transferOwnership(address _signer, address _newOwner)
         external
     {
@@ -348,8 +369,8 @@ contract NodeRegistryLogic {
     /// @notice doing so will also lock his deposit for the timeout of the node
     /// @param _signer the signer of the in3-node
     /// @dev reverts when the provided address is not an in3-signer
-    /// @dev reverts when the node is already unregistering
     /// @dev reverts when not called by the owner of the node
+    /// @dev reverts when the node is not active
     function unregisteringNode(address _signer)
         external
     {
@@ -357,16 +378,18 @@ contract NodeRegistryLogic {
         require(si.stage == uint(Stages.Active), "wrong stage");
         require(si.owner == msg.sender, "not the owner");
         nodeRegistryData.unregisteringNode(_signer);
-        
+
         nodeRegistryData.adminSetStage(_signer, uint(Stages.DepositNotWithdrawn));
 
     }
 
     /// @notice updates a node by adding the msg.value to the deposit and setting the props or timeout
+    /// @dev of there is an additional deposit the owner has to approve the tokenTransfer before
     /// @param _signer the signer-address of the in3-node, used as an identifier
     /// @param _url the url, will be changed if different from the current one
     /// @param _props the new properties, will be changed if different from the current onec
     /// @param _weight the amount of requests per second the node is able to handle
+    /// @param _additionalDeposit the additional deposit in erc20-token
     /// @dev reverts when the sender is not the owner of the node
     /// @dev reverts when the signer does not own a node
     /// @dev reverts when trying to increase the timeout above 10 years
@@ -404,6 +427,13 @@ contract NodeRegistryLogic {
         );
     }
 
+    /// @notice helper function for registering a node
+    /// @param _url the url of the node
+    /// @param _props the properties of the node
+    /// @param _signer the signer of the node
+    /// @param _owner the owner of the node
+    /// @param _deposit the deposit of the node
+    /// @param _weight the weight of the node (# of requests per second he is able to handle)
     function registerNodeInternal (
         string memory _url,
         uint192 _props,
@@ -415,9 +445,9 @@ contract NodeRegistryLogic {
         internal
     {
         ERC20Wrapper supportedToken = nodeRegistryData.supportedToken();
-  
+
         require(supportedToken.transferFrom(_owner, address(nodeRegistryData), _deposit), "ERC20 token transfer failed");
-    
+
         require(_deposit >= MIN_DEPOSIT, "not enough deposit");
 
         _checkNodePropertiesInternal(_deposit);
