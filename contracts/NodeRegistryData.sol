@@ -20,7 +20,7 @@
 pragma solidity 0.5.10;
 pragma experimental ABIEncoderV2;
 
-import "./ERC20Interface.sol";
+import "./ERC20Wrapper.sol";
 
 
 /// @title Registry for IN3-nodes
@@ -48,7 +48,7 @@ contract NodeRegistryData {
         uint deposit;                       /// stored deposit
 
         uint64 registerTime;                /// timestamp when the node was registered
-        uint128 props;                      /// a list of properties-flags representing the capabilities of the node
+        uint192 props;                      /// a list of properties-flags representing the capabilities of the node
 
         uint64 weight;                      ///  the flag for (future) incentivisation
         address signer;                     /// the signer for requests
@@ -86,7 +86,7 @@ contract NodeRegistryData {
 
     uint public timeout;
 
-    ERC20Interface public supportedToken;
+    ERC20Wrapper public supportedToken;
 
     /// add your additional storage here. If you add information before this line you will break in3 nodelist
 
@@ -135,21 +135,6 @@ contract NodeRegistryData {
 
     }
 
-    function adminTransferDepositFromSigner(address _signer, address _to, uint _amount) external onlyLogicContract {
-        SignerInformation storage si = signerIndex[_signer];
-        require(_amount <= si.depositAmount, "amount too high");
-        require(supportedToken.transfer(_to, _amount), "token transfer failed");
-        si.depositAmount = si.depositAmount - _amount;
-    }
-
-    function adminTransferDepositFromNode(address _signer, address _to, uint _amount) external onlyLogicContract {
-        SignerInformation memory si = signerIndex[_signer];
-        In3Node storage node = nodes[si.index];
-        require(_amount <= si.depositAmount, "amount too high");
-        require(supportedToken.transfer(_to, _amount), "token transfer failed");
-        node.deposit = node.deposit - _amount;
-    }
-
     function adminTransferDeposit(address _to, uint _amount) external onlyLogicContract {
         require(supportedToken.transfer(_to, _amount), "ERC20 token transfer failed");
     }
@@ -183,7 +168,7 @@ contract NodeRegistryData {
         timeout = _newTimeout;
     }
 
-    function adminSetSupportedToken(ERC20Interface _newToken) external onlyLogicContract {
+    function adminSetSupportedToken(ERC20Wrapper _newToken) external onlyLogicContract {
         supportedToken = _newToken;
     }
 
@@ -206,7 +191,7 @@ contract NodeRegistryData {
     /// @dev will revert when a wrong signature has been provided
     function registerNodeFor(
         string calldata _url,
-        uint64 _props,
+        uint192 _props,
         address _signer,
         uint64 _weight,
         address _owner,
@@ -299,7 +284,7 @@ contract NodeRegistryData {
     function updateNode(
         address _signer,
         string calldata _url,
-        uint64 _props,
+        uint192 _props,
         uint64 _weight,
         uint _deposit
     )

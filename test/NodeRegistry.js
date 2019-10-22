@@ -140,7 +140,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -192,19 +192,28 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
 
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
-        const pk2 = await utils.createAccount(null, '49000000000000000000')
+        const pk2 = await utils.createAccount(null, '400000000000000000000')
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk2)
+
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk2)
 
-        assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData }, pk2).catch(_ => false))
+        //   assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData }, pk2).catch(_ => false))
+        let failed = false
+        try {
+            await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData }, pk2)
+        } catch (e) {
+            console.log(e)
+            failed = true
+        }
+        assert.isTrue(failed)
     })
-
 
     it("should fail trying to register a node with the same signer twice", async () => {
 
@@ -248,7 +257,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -302,7 +311,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -321,6 +330,8 @@ contract('NodeRegistry', async () => {
 
         const txDataRemoval = nodeRegistryLogic.methods.adminRemoveNodeFromRegistry(ethAcc.address).encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataRemoval }, deployKey)
+        const unregisterBlock = await web3.eth.getBlock('latest')
+
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
 
         const lastNode = await nodeRegistryData.methods.nodes(0).call()
@@ -329,7 +340,6 @@ contract('NodeRegistry', async () => {
 
         const txDataRemovalTwo = nodeRegistryLogic.methods.adminRemoveNodeFromRegistry(web3.eth.accounts.privateKeyToAccount(pk2).address).encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataRemovalTwo }, deployKey)
-        const unregisterBlock = await web3.eth.getBlock('latest')
 
         assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataRemovalTwo }, deployKey).catch(_ => false))
 
@@ -385,7 +395,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -442,7 +452,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -552,7 +562,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -631,7 +641,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -685,7 +695,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -739,7 +749,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -760,6 +770,69 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual(signerInfoBefore.owner, ethAcc.address)
         assert.strictEqual(signerInfoAfter.owner, nonExistingAccount.address)
+    })
+
+    it("should fail transfering the ownership of a node when being in the wrong state", async () => {
+
+        const deployKey = await utils.createAccount(null, '400000000000000000000')
+
+        const pk = await utils.createAccount(null, '400000000000000000000')
+
+        const contracts = await deployment.deployContracts(web3, deployKey)
+        const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
+        const nodeRegistryData = new web3.eth.Contract(NodeRegistryData.abi, contracts.nodeRegistryData)
+
+        const erc20Token = new web3.eth.Contract(ERC20Wrapper.abi, contracts.ERC20Token)
+        const ethAcc = await web3.eth.accounts.privateKeyToAccount(pk);
+
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
+
+        const mintData = erc20Token.methods.mint().encodeABI()
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
+
+        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
+
+        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        const block = await web3.eth.getBlock("latest")
+
+        const registeredNode = await nodeRegistryData.methods.nodes(0).call()
+
+        assert.strictEqual(registeredNode.url, "#1")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
+        assert.strictEqual(registeredNode.props, '65000')
+        assert.strictEqual(registeredNode.signer, ethAcc.address)
+
+        const calcHash = ethUtil.keccak(
+            Buffer.concat([
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.uint64(block.timestamp),
+                in3Common.util.toBuffer('65000', 24),
+                in3Common.serialize.address(ethAcc.address),
+                in3Common.serialize.bytes('#1')
+            ]))
+
+        assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
+
+        const signerInfoBefore = await nodeRegistryData.methods.signerIndex(ethAcc.address).call()
+
+        assert.strictEqual(signerInfoBefore.owner, ethAcc.address)
+
+        const newOwner = await utils.createAccount()
+        const nonExistingAccount = await web3.eth.accounts.privateKeyToAccount(newOwner);
+
+        const txDataUnregister = nodeRegistryLogic.methods.unregisteringNode(ethAcc.address).encodeABI()
+        await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataUnregister }, pk)
+
+        const txDataTransfer = nodeRegistryLogic.methods.transferOwnership(ethAcc.address, nonExistingAccount.address).encodeABI()
+        assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataTransfer }, pk).catch(_ => false))
+
     })
 
 
@@ -805,7 +878,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -865,7 +938,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -925,14 +998,14 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
 
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
-        const txDataUpdate = nodeRegistryLogic.methods.updateNode(ethAcc.address, "abc", 32000, 2000, 0).encodeABI()
+        const txDataUpdate = nodeRegistryLogic.methods.updateNode(ethAcc.address, "abc", 1, 1, 0).encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataUpdate }, pk)
 
         const registeredNodeUpdated = await nodeRegistryData.methods.nodes(0).call()
@@ -940,15 +1013,15 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(registeredNodeUpdated.url, "abc")
         assert.strictEqual(registeredNodeUpdated.deposit, "40000000000000000000")
         assert.strictEqual(registeredNodeUpdated.registerTime, '' + block.timestamp)
-        assert.strictEqual(registeredNodeUpdated.props, '32000')
+        assert.strictEqual(registeredNodeUpdated.props, '1')
         assert.strictEqual(registeredNodeUpdated.signer, ethAcc.address)
-        assert.strictEqual(registeredNodeUpdated.weight, '2000')
+        assert.strictEqual(registeredNodeUpdated.weight, '1')
 
         const calcHashUpdated = ethUtil.keccak(
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('32000', 16),
+                in3Common.util.toBuffer('1', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('abc')
             ]))
@@ -999,7 +1072,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -1025,7 +1098,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000500')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('32000', 16),
+                in3Common.util.toBuffer('32000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('abc')
             ]))
@@ -1075,7 +1148,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -1131,7 +1204,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -1190,7 +1263,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -1205,7 +1278,15 @@ contract('NodeRegistry', async () => {
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataTwo, }, pk2)
 
         const txDataUpdate = nodeRegistryLogic.methods.updateNode(ethAcc.address, "#2", 32000, 2000, 0).encodeABI()
-        assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataUpdate }, pk).catch(_ => false))
+        // assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataUpdate }, pk).catch(_ => false))
+        let failed = false
+
+        try { await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataUpdate }, pk) }
+        catch (e) {
+            console.log(e)
+            failed = true
+        }
+        assert.isTrue(failed)
     })
 
     it("should be able to register a node for a different signer", async () => {
@@ -1254,7 +1335,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(signerAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -1326,7 +1407,7 @@ contract('NodeRegistry', async () => {
         const signature = utils.signForRegister("#1", 65000, 2000, ethAcc.address, signerPK)
 
         const txData = nodeRegistryLogic.methods.registerNodeFor("#2", 65000, signerAcc.address, 2000, "40000000000000000000", signature.v, signature.r, signature.s).encodeABI()
-        assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, value: '40000000000000000000' }, pk).catch(_ => false))
+        assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData }, pk).catch(_ => false))
     })
 
 
@@ -1376,7 +1457,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(signerAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -1407,7 +1488,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('32000', 16),
+                in3Common.util.toBuffer('32000', 24),
                 in3Common.serialize.address(signerAcc.address),
                 in3Common.serialize.bytes('abc')
             ]))
@@ -1468,7 +1549,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -1563,7 +1644,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -1592,7 +1673,7 @@ contract('NodeRegistry', async () => {
         await utils.createAccount(null, '1')
         await utils.createAccount(null, '1')
 
-        const revealConvictData = nodeRegistryLogic.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s).encodeABI()
+        const revealConvictData = nodeRegistryLogic.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, 0, signedBlock.r, signedBlock.s).encodeABI()
         assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: revealConvictData }, convictCaller).catch(_ => false))
 
     })
@@ -1642,7 +1723,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -1718,7 +1799,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -1797,7 +1878,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -1876,7 +1957,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -1966,7 +2047,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -2044,7 +2125,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -2148,7 +2229,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -2251,7 +2332,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -2343,7 +2424,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -2397,7 +2478,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -2485,7 +2566,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -2558,7 +2639,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -2635,7 +2716,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('50000000000000000001')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))
@@ -2686,7 +2767,7 @@ contract('NodeRegistry', async () => {
             Buffer.concat([
                 in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
-                in3Common.util.toBuffer('65000', 16),
+                in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.address(ethAcc.address),
                 in3Common.serialize.bytes('#1')
             ]))

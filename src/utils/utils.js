@@ -61,7 +61,7 @@ const signForRegister = (url, props, weight, owner, pk) => {
     const msgHash = ethUtil.keccak(
         Buffer.concat([
             in3Common.serialize.bytes(url),
-            in3Common.serialize.uint64(props),
+            in3Common.util.toBuffer(props, 24),
             in3Common.serialize.uint64(weight),
             in3Common.serialize.address(owner)
         ])

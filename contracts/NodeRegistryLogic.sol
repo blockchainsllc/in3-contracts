@@ -22,14 +22,14 @@ pragma experimental ABIEncoderV2;
 
 import "./BlockhashRegistry.sol";
 import "./NodeRegistryData.sol";
-import "./ERC20Interface.sol";
+import "./ERC20Wrapper.sol";
 
 
 /// @title Registry for IN3-nodes
 contract NodeRegistryLogic {
 
     /// node has been registered
-    event LogNodeRegistered(string url, uint props, address signer, uint deposit);
+    event LogNodeRegistered(string url, uint192 props, address signer, uint deposit);
 
     /// a node was convicted
     event LogNodeConvicted(address signer);
@@ -38,7 +38,7 @@ contract NodeRegistryLogic {
     event LogNodeRemoved(string url, address signer);
 
     /// a node has been updated
-    event LogNodeUpdated(string url, uint props, address signer, uint deposit);
+    event LogNodeUpdated(string url, uint192 props, address signer, uint deposit);
 
     /// the ownership of a node changed
     event LogOwnershipChanged(address signer, address oldOwner, address newOwner);
@@ -65,7 +65,7 @@ contract NodeRegistryLogic {
     address public adminKey;
 
     uint public updateTimeout;
-    
+
     address public pendingNewLogic;
 
     /// capping the max deposit timeout on 1 year
@@ -151,7 +151,7 @@ contract NodeRegistryLogic {
     /// @dev will call the registerNodeInteral function
     function registerNode(
         string calldata _url,
-        uint64 _props,
+        uint192 _props,
         uint64 _weight,
         uint _deposit
     )
@@ -182,7 +182,7 @@ contract NodeRegistryLogic {
     /// @dev will revert when a wrong signature has been provided
     function registerNodeFor(
         string calldata _url,
-        uint64 _props,
+        uint192 _props,
         address _signer,
         uint64 _weight,
         uint _depositAmount,
@@ -267,6 +267,7 @@ contract NodeRegistryLogic {
     )
         external
     {
+        require(_v == 27 || _v == 28, "wrong signature");
 
         // solium-disable-next-line security/no-block-members
         bytes32 evmBlockhash = blockhash(_blockNumber);
@@ -292,7 +293,6 @@ contract NodeRegistryLogic {
         require(convictBlockNumber != 0, "wrong convict hash");
 
         require(block.number > convictBlockNumber + 2, "revealConvict still locked");
-        require(_v == 27 || _v == 28, "wrong signature");
         require(
             ecrecover(
                 keccak256(
@@ -374,7 +374,7 @@ contract NodeRegistryLogic {
     function updateNode(
         address _signer,
         string calldata _url,
-        uint64 _props,
+        uint192 _props,
         uint64 _weight,
         uint _additionalDeposit
     )
@@ -389,7 +389,7 @@ contract NodeRegistryLogic {
         uint deposit = node.deposit;
 
         if (_additionalDeposit > 0) {
-            ERC20Interface supportedToken = nodeRegistryData.supportedToken();
+            ERC20Wrapper supportedToken = nodeRegistryData.supportedToken();
             require(supportedToken.transferFrom(msg.sender, address(nodeRegistryData), _additionalDeposit), "ERC20 token transfer failed");
             deposit += _additionalDeposit;
         }
@@ -406,7 +406,7 @@ contract NodeRegistryLogic {
 
     function registerNodeInternal (
         string memory _url,
-        uint64 _props,
+        uint192 _props,
         address _signer,
         address _owner,
         uint _deposit,
@@ -414,7 +414,7 @@ contract NodeRegistryLogic {
     )
         internal
     {
-        ERC20Interface supportedToken = nodeRegistryData.supportedToken();
+        ERC20Wrapper supportedToken = nodeRegistryData.supportedToken();
   
         require(supportedToken.transferFrom(_owner, address(nodeRegistryData), _deposit), "ERC20 token transfer failed");
     
