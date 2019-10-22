@@ -34,7 +34,7 @@ contract IN3WhiteList {
     ///DATA
     //in3 nodes list in mappings
     mapping(address=>uint) public whiteListNodes;
-    address[] public whiteListNodesList;
+    bytes public whiteListNodesList;
 
     //for tracking this white listing belongs to which node registry
     address public nodeRegistry;
@@ -67,7 +67,10 @@ contract IN3WhiteList {
     {
         require(whiteListNodes[_nodeAddr] == 0, "Node already exists in whitelist.");
 
-        whiteListNodesList.push(_nodeAddr);
+        bytes memory newAddr = abi.encodePacked(_nodeAddr);
+        for (uint i = 0;i<20;i++) {
+            whiteListNodesList.push(newAddr[i]);
+        }
         whiteListNodes[_nodeAddr] = whiteListNodesList.length;
 
         emit LogNodeWhiteListed(_nodeAddr);
@@ -81,24 +84,20 @@ contract IN3WhiteList {
         uint location = whiteListNodes[_nodeAddr];  //location is not zero based index stored in mappings, it starts from 1
         require(location > 0, "Node doesnt exist in whitelist.");
 
-        uint length = whiteListNodesList.length;
-        if (location!=length) {
-            whiteListNodesList[location-1] = whiteListNodesList[length-1];}
+        uint length = whiteListNodesList.length-1;
 
-        delete whiteListNodesList[length-1];
-        whiteListNodesList.length--;
+        for (uint i = 0;i<=20;i++) {
+            if (location!=length) {
+                whiteListNodesList[location-i-1] = whiteListNodesList[length-i];}
+            delete whiteListNodesList[length-i];
+        }
 
+        whiteListNodesList.length -= 20;
         emit LogNodeRemoved(_nodeAddr);
     }
 
-    function nodeListBytes() public view returns (bytes memory b) {
-        b = new bytes(whiteListNodesList.length*20);
-
-        uint c = 0;
-        for (uint j = 0; j < whiteListNodesList.length; j++) {
-            for (uint i = 0; i < 20; i++) {
-                b[c++] = byte(uint8(uint(whiteListNodesList[j]) / (2**(8*(19 - i)))));}
-        }
+    function getWhiteList() public view returns (bytes memory) {
+        return whiteListNodesList;
     }
 
 }
