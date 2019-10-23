@@ -24,18 +24,14 @@ pragma solidity 0.5.10;
 
 contract IN3WhiteList {
 
-    ///EVENTS
-    // event for looking node added to whitelisting contract
-    event LogNodeWhiteListed(address nodeAddress);
-
-    // event for looking node removed from whitelisting contract
-    event LogNodeRemoved(address nodeAddress);
-
     ///DATA
+    bytes32 proofHash;
+
+    uint public lastEventBlockNumber;
+
+    bytes public whiteListNodesList;
     //in3 nodes list in mappings
     mapping(address=>uint) public whiteListNodes;
-    bytes public whiteListNodesList;
-    bytes32 proofHash;
 
     //for tracking this white listing belongs to which node registry
     address public nodeRegistry;
@@ -45,6 +41,13 @@ contract IN3WhiteList {
 
     // version: major minor fork(000) date(yyyy/mm/dd)
     uint constant public VERSION = 12300020191017;
+
+    ///EVENTS
+    // event for looking node added to whitelisting contract
+    event LogNodeWhiteListed(address nodeAddress);
+
+    // event for looking node removed from whitelisting contract
+    event LogNodeRemoved(address nodeAddress);
 
     ///MODIFIERS
     //only owner modifier
@@ -76,6 +79,8 @@ contract IN3WhiteList {
 
         proofHash = keccak256(abi.encodePacked(whiteListNodesList));
 
+        lastEventBlockNumber = block.number;
+
         emit LogNodeWhiteListed(_nodeAddr);
     }
 
@@ -90,12 +95,14 @@ contract IN3WhiteList {
         uint length = whiteListNodesList.length-1;
 
         for (uint i = 0;i<20;i++) {
-            if (location!=length) {
+            if (location!=length+1) { //check if its not first or not last addr then swap last with item to be deleted
                 whiteListNodesList[location-i-1] = whiteListNodesList[length-i];}
             delete whiteListNodesList[length-i];
         }
 
         whiteListNodesList.length -= 20;
+
+        lastEventBlockNumber = block.number;
         emit LogNodeRemoved(_nodeAddr);
     }
 
