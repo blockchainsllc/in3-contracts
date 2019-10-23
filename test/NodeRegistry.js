@@ -2913,17 +2913,7 @@ contract('NodeRegistry', async () => {
         const nodeRegistry = new web3.eth.Contract(NodeRegistryData.abi, nodeRegistryDataAddress)
 
         const unregisterData = nodeRegistry.methods.adminRemoveNodeFromRegistry("0x0000000000000000000000000000000000000010").encodeABI()
-        //   assert.isFalse(await utils.handleTx({ to: nodeRegistryDataAddress, data: tokenTransferData, }, deployKey).catch(_ => false))
-        let failed = false
-
-        try {
-            await utils.handleTx({ to: nodeRegistryDataAddress, data: unregisterData, }, deployKey)
-        } catch (e) {
-            console.log(e)
-            failed = true
-        }
-
-        assert.isTrue(failed)
+        assert.isFalse(await utils.handleTx({ to: nodeRegistryDataAddress, data: unregisterData, }, deployKey).catch(_ => false))
 
     })
 

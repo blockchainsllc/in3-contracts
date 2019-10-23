@@ -80,7 +80,7 @@ contract NodeRegistryLogic {
     uint constant internal YEAR_DEFINITION = 1 days * 365;
 
     /// limit for ether per node in the 1st year
-    uint constant public MAX_ETHER_LIMIT_FIRST_YEAR = 50000000000000000000; // 50 ether
+    uint constant public MAX_TOKEN_LIMIT_FIRST_YEAR = 50000000000000000000; // 50 ether
 
     /// min deposit required for registering a node
     uint constant public MIN_DEPOSIT = 10000000000000000; // 10 finney
@@ -133,11 +133,11 @@ contract NodeRegistryLogic {
 
         NodeRegistryData.SignerInformation memory si = nodeRegistryData.getSignerInformation(_signer);
         require(si.stage == uint(Stages.Active), "wrong stage");
+        NodeRegistryData.In3Node memory in3Node = nodeRegistryData.getIn3NodeInformation(si.index);
 
         nodeRegistryData.unregisteringNode(_signer);
         nodeRegistryData.adminSetStage(_signer, uint(Stages.DepositNotWithdrawn));
 
-        NodeRegistryData.In3Node memory in3Node = nodeRegistryData.getIn3NodeInformation(si.index);
         emit LogNodeRemoved(in3Node.url, _signer);
 
     }
@@ -274,7 +274,7 @@ contract NodeRegistryLogic {
             _signer,
             msg.sender,
             depositAmount,
-            nodeRegistryData.supportedToken()
+            address(nodeRegistryData.supportedToken())
         );
     }
 
@@ -428,6 +428,7 @@ contract NodeRegistryLogic {
     )
         external
     {
+
         NodeRegistryData.SignerInformation memory si = nodeRegistryData.getSignerInformation(_signer);
         require(si.stage == uint(Stages.Active), "wrong stage");
         require(si.owner == msg.sender, "not the owner");
@@ -436,6 +437,7 @@ contract NodeRegistryLogic {
         require(node.signer == _signer, "wrong signer");
 
         uint deposit = node.deposit;
+        _checkNodePropertiesInternal(deposit);
 
         if (_additionalDeposit > 0) {
             ERC20Wrapper supportedToken = nodeRegistryData.supportedToken();
@@ -443,7 +445,6 @@ contract NodeRegistryLogic {
             deposit += _additionalDeposit;
         }
 
-        _checkNodePropertiesInternal(deposit);
         nodeRegistryData.updateNode(
             _signer,
             _url,
@@ -477,13 +478,11 @@ contract NodeRegistryLogic {
     )
         internal
     {
+        _checkNodePropertiesInternal(_deposit);
+
         ERC20Wrapper supportedToken = nodeRegistryData.supportedToken();
 
         require(supportedToken.transferFrom(_owner, address(nodeRegistryData), _deposit), "ERC20 token transfer failed");
-
-        require(_deposit >= MIN_DEPOSIT, "not enough deposit");
-
-        _checkNodePropertiesInternal(_deposit);
 
         NodeRegistryData.SignerInformation memory si = nodeRegistryData.getSignerInformation(_signer);
         bytes32 urlHash = keccak256(bytes(_url));
@@ -520,9 +519,11 @@ contract NodeRegistryLogic {
     /// @dev will fail when the provided timeout is greater then 1 year
     function _checkNodePropertiesInternal(uint256 _deposit) internal view {
 
+        require(_deposit >= MIN_DEPOSIT, "not enough deposit");
+
         // solium-disable-next-line security/no-block-members
         if (block.timestamp < timestampAdminKeyActive) { // solhint-disable-line not-rely-on-time
-            require(_deposit < MAX_ETHER_LIMIT_FIRST_YEAR, "Limit of 50 ETH reached");
+            require(_deposit < MAX_TOKEN_LIMIT_FIRST_YEAR, "Limit of 50 ETH reached");
         }
     }
 }
