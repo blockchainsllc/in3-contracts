@@ -43,7 +43,11 @@ contract NodeRegistryLogic {
     /// the ownership of a node changed
     event LogOwnershipChanged(address signer, address oldOwner, address newOwner);
 
+    /// a new logic contract got proposed
     event LogNewPendingContract(address newPendingContract);
+
+    /// deposit has been returned
+    event LogDepositReturned(address signer, address owner, uint deposit, address erc20Token);
 
     /// Different Stages a node can have
     enum Stages {
@@ -132,6 +136,9 @@ contract NodeRegistryLogic {
 
         nodeRegistryData.unregisteringNode(_signer);
         nodeRegistryData.adminSetStage(_signer, uint(Stages.DepositNotWithdrawn));
+
+        NodeRegistryData.In3Node memory in3Node = nodeRegistryData.getIn3NodeInformation(si.index);
+        emit LogNodeRemoved(in3Node.url, _signer);
 
     }
 
@@ -262,6 +269,13 @@ contract NodeRegistryLogic {
 
         nodeRegistryData.adminSetSignerInfo(_signer, si);
         nodeRegistryData.adminTransferDeposit(msg.sender, depositAmount);
+
+        emit LogDepositReturned(
+            _signer,
+            msg.sender,
+            depositAmount,
+            nodeRegistryData.supportedToken()
+        );
     }
 
     /// @notice reveals the wrongly provided blockhash, so that the node-owner will lose its deposit
@@ -326,8 +340,6 @@ contract NodeRegistryLogic {
         NodeRegistryData.SignerInformation memory si = nodeRegistryData.getSignerInformation(_signer);
         require(si.stage == uint(Stages.Active) || si.stage == uint(Stages.DepositNotWithdrawn), "wrong stage");
 
-        emit LogNodeConvicted(_signer);
-
         uint deposit = 0;
         if (si.stage == uint(Stages.Active)) {
             NodeRegistryData.In3Node memory in3Node = nodeRegistryData.getNodeInfromationBySigner(_signer);
@@ -335,6 +347,7 @@ contract NodeRegistryLogic {
             nodeRegistryData.adminSetNodeDeposit(_signer, 0);
             nodeRegistryData.adminRemoveNodeFromRegistry(_signer);
             nodeRegistryData.adminSetStage(_signer, uint(Stages.Convicted));
+            emit LogNodeRemoved(in3Node.url, _signer);
 
         } else {
             deposit = si.depositAmount;
@@ -345,6 +358,7 @@ contract NodeRegistryLogic {
         }
 
         nodeRegistryData.adminTransferDeposit(msg.sender, deposit/2);
+        emit LogNodeConvicted(_signer);
 
     }
 
@@ -362,7 +376,12 @@ contract NodeRegistryLogic {
         require(si.stage == uint(Stages.Active), "wrong stage");
         require(si.owner == msg.sender, "not the owner");
 
+        NodeRegistryData.In3Node memory in3Node = nodeRegistryData.getIn3NodeInformation(si.index);
+        require(in3Node.signer == _signer, "wrong signer");
+
         nodeRegistryData.transferOwnership(_signer, _newOwner);
+
+        emit LogOwnershipChanged(_signer, msg.sender, _newOwner);
     }
 
     /// @notice a node owner can unregister a node, removing it from the nodeList
@@ -377,9 +396,15 @@ contract NodeRegistryLogic {
         NodeRegistryData.SignerInformation memory si = nodeRegistryData.getSignerInformation(_signer);
         require(si.stage == uint(Stages.Active), "wrong stage");
         require(si.owner == msg.sender, "not the owner");
+
+        NodeRegistryData.In3Node memory in3Node = nodeRegistryData.getIn3NodeInformation(si.index);
+        require(in3Node.signer == _signer, "wrong signer");
+
         nodeRegistryData.unregisteringNode(_signer);
 
         nodeRegistryData.adminSetStage(_signer, uint(Stages.DepositNotWithdrawn));
+
+        emit LogNodeRemoved(in3Node.url, _signer);
 
     }
 
@@ -408,6 +433,7 @@ contract NodeRegistryLogic {
         require(si.owner == msg.sender, "not the owner");
 
         NodeRegistryData.In3Node memory node = nodeRegistryData.getNodeInfromationBySigner(_signer);
+        require(node.signer == _signer, "wrong signer");
 
         uint deposit = node.deposit;
 
@@ -423,6 +449,13 @@ contract NodeRegistryLogic {
             _url,
             _props,
             _weight,
+            deposit
+        );
+
+        emit LogNodeUpdated(
+            node.url,
+            _props,
+            _signer,
             deposit
         );
     }
@@ -470,6 +503,13 @@ contract NodeRegistryLogic {
             _owner,
             _deposit,
             uint(Stages.Active)
+        );
+
+        emit LogNodeRegistered(
+            _url,
+            _props,
+            _signer,
+            _deposit
         );
 
     }

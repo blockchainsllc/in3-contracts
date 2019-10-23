@@ -371,6 +371,13 @@ contract NodeRegistryData {
     }
 
     /// @notice returns the SignerInformation of a signer
+    /// @param _index the position of the NodeInfo in the node-array
+    /// @return the In3Node for the index provided
+    function getIn3NodeInformation(uint _index) external view returns (In3Node memory) {
+        return nodes[_index];
+    }
+
+    /// @notice returns the SignerInformation of a signer
     /// @param _signer the signer for the information to get
     /// @return the SignerInformation for the signer
     function getSignerInformation(address _signer) external view returns (SignerInformation memory) {
