@@ -20,7 +20,7 @@
 pragma solidity 0.5.10;
 pragma experimental ABIEncoderV2;
 
-import "./ERC20Wrapper.sol";
+import "./IERC20.sol";
 
 
 /// @title Registry for IN3-nodes
@@ -88,7 +88,7 @@ contract NodeRegistryData {
     uint public timeout;
 
     /// tokenContract to be used
-    ERC20Wrapper public supportedToken;
+    IERC20 public supportedToken;
 
     /// add your additional storage here. If you add information before this line you will break in3 nodelist
 
@@ -175,7 +175,7 @@ contract NodeRegistryData {
     /// @dev only callable by the current logic contract
     /// @param _newToken the new token-contract
     /// @return true if successfull
-    function adminSetSupportedToken(ERC20Wrapper _newToken) external onlyLogicContract returns (bool) {
+    function adminSetSupportedToken(IERC20 _newToken) external onlyLogicContract returns (bool) {
         require(address(_newToken) != address(0x0), "0x0 is invalid");
         supportedToken = _newToken;
         return true;

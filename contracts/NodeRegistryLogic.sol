@@ -22,7 +22,7 @@ pragma experimental ABIEncoderV2;
 
 import "./BlockhashRegistry.sol";
 import "./NodeRegistryData.sol";
-import "./ERC20Wrapper.sol";
+import "./IERC20.sol";
 
 
 /// @title Registry for IN3-nodes
@@ -440,7 +440,7 @@ contract NodeRegistryLogic {
         _checkNodePropertiesInternal(deposit);
 
         if (_additionalDeposit > 0) {
-            ERC20Wrapper supportedToken = nodeRegistryData.supportedToken();
+            IERC20 supportedToken = nodeRegistryData.supportedToken();
             require(supportedToken.transferFrom(msg.sender, address(nodeRegistryData), _additionalDeposit), "ERC20 token transfer failed");
             deposit += _additionalDeposit;
         }
@@ -480,7 +480,7 @@ contract NodeRegistryLogic {
     {
         _checkNodePropertiesInternal(_deposit);
 
-        ERC20Wrapper supportedToken = nodeRegistryData.supportedToken();
+        IERC20 supportedToken = nodeRegistryData.supportedToken();
 
         require(supportedToken.transferFrom(_owner, address(nodeRegistryData), _deposit), "ERC20 token transfer failed");
 
