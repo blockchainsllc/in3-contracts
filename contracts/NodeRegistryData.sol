@@ -419,6 +419,7 @@ contract NodeRegistryData {
                 _node.deposit,
                 _node.registerTime,
                 _node.props,
+                _node.weight,
                 _node.signer,
                 _node.url
             )
