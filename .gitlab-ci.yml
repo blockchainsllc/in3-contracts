@@ -50,8 +50,10 @@ truffle-compile-contracts:
     - npm run compile
   artifacts: 
     paths:
-      - build/contracts/BlockhashRegistry.json
+      - build/contracts/BlockhashRegistryLogic.json
       - build/contracts/NodeRegistry.json
+      - build/contracts/BlockhashRegistryData.json
+      - build/contracts/ERC20Wrapper.json
 
 test-parity:
   stage: test

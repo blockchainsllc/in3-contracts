@@ -158,13 +158,6 @@ const deployGnosisSafeWallet = async () => {
     await sendTx(web3, setupTxDataProxy, deployedWalletAddress, 0, Math.floor(gasSetupTxDataProxy * 1.2), deployerAddress.privateKey)
 
     /**
-     * the multisig wallet is now ready -> sending ether
-     */
-
-    console.log("sending ether to wallet")
-    await sendTx(web3, null, deployedWalletAddress, "50000000000000000", 122000, deployerAddress.privateKey)
-
-    /**
     * deploying the createCall contract
     */
 
@@ -376,9 +369,10 @@ const deployGnosisSafeWallet = async () => {
     // we did not set a token contract, so we have to deploy one
 
     let erc20Address
+    const erc20tokenInfo = JSON.parse(fs.readFileSync("build/contracts/ERC20Wrapper.json"))
+
     if (!process.env.ERC20Token) {
         console.log("deploying ERC20 token")
-        const erc20tokenInfo = JSON.parse(fs.readFileSync("build/contracts/ERC20Wrapper.json"))
         //getting the txData 
         const txCallDeployERC20 = createCall.methods.performCreate(0, erc20tokenInfo.bytecode).encodeABI()
 
@@ -432,9 +426,74 @@ const deployGnosisSafeWallet = async () => {
 
         const txDeployERC20 = await sendTx(web3, execERC20DeployTxData, deployedWalletAddress, 0, Math.floor(gasExecTxDataCallDeployERC20 * 1.1), deployerAddress.privateKey)
         erc20Address = "0x" + txDeployERC20.logs[0].data.substr(26)
+        const erc20Contract = new web3.eth.Contract(erc20tokenInfo.abi, erc20Address)
 
+        console.log("minting tokens")
+        const txMintData = erc20Contract.methods.mint().encodeABI()
+        const gasTxMint = await erc20Contract.methods.mint().estimateGas({ from: deployerAddress.address, value: '50000000000000000' })
+        await sendTx(web3, txMintData, erc20Address, '50000000000000000', Math.floor(gasTxMint * 1.1), deployerAddress.privateKey)
     }
     else erc20Address = process.env.ERC20
+
+    const erc20Contract = new web3.eth.Contract(erc20tokenInfo.abi, erc20Address)
+
+    console.log("transfering tokens")
+    // transfering tokens to the erc20 contract
+    const tokenTransferTxData = erc20Contract.methods.transfer(deployedWalletAddress, '50000000000000000').encodeABI()
+    const gasTokenTransfer = await erc20Contract.methods.transfer(deployedWalletAddress, '50000000000000000').estimateGas({ from: deployerAddress.address })
+    await sendTx(web3, tokenTransferTxData, erc20Address, 0, Math.floor(gasTokenTransfer * 1.1), deployerAddress.privateKey)
+
+
+    console.log("balance", await erc20Contract.methods.balanceOf(deployedWalletAddress).call())
+    // allow tokens to be transfered by the contract
+    const txApproveContract = erc20Contract.methods.approve(nodeRegistryAddress, '50000000000000000').encodeABI()
+    const gasApproveToken = await erc20Contract.methods.approve(nodeRegistryAddress, '50000000000000000').estimateGas({ from: deployedWalletAddress })
+
+    nonceWallet = await gnosisProxy.methods.nonce().call()
+
+    const calcTxApproveToken = await gnosisProxy.methods.getTransactionHash(
+        erc20Address,                                       // address to,
+        0,                                                  // uint256 value,
+        txApproveContract,                                          // bytes memory data,
+        0,                                                  // Enum.Operation operation,
+        Math.floor(gasApproveToken * 1.2),                     // uint256 safeTxGas,
+        Math.floor(gasApproveToken * 1.2),                     // uint256 baseGas,
+        0,                                                  // uint256 gasPrice,
+        "0x0000000000000000000000000000000000000000",       // address gasToken,
+        "0x0000000000000000000000000000000000000000",       // address refundReceiver,
+        nonceWallet                                         // uint256 _nonce
+    ).call()
+
+    // signing
+    const signatureApprove = util.signHash(deployerAddress.privateKey, calcTxApproveToken)
+
+    const approveTokenTxData = gnosisProxy.methods.execTransaction(
+        erc20Address,                                // address to,
+        0,                                // uint256 value,
+        txApproveContract,                                          // bytes memory data,
+        0,                                                  // Enum.Operation operation,
+        Math.floor(gasApproveToken * 1.2),                     // uint256 safeTxGas,
+        Math.floor(gasApproveToken * 1.2),                     // uint256 baseGas,
+        0,                                                  // uint256 gasPrice,
+        "0x0000000000000000000000000000000000000000",       // address gasToken,
+        "0x0000000000000000000000000000000000000000",       // address refundReceiver,
+        signatureApprove.signatureBytes                     // bytes calldata signatures
+    ).encodeABI()
+
+    const gasTxApproveToken = await gnosisProxy.methods.execTransaction(
+        erc20Address,                                // address to,
+        0,                                // uint256 value,
+        txApproveContract,                                          // bytes memory data,
+        0,                                                  // Enum.Operation operation,
+        Math.floor(gasApproveToken * 1.2),                     // uint256 safeTxGas,
+        Math.floor(gasApproveToken * 1.2),                     // uint256 baseGas,
+        0,                                                  // uint256 gasPrice,
+        "0x0000000000000000000000000000000000000000",       // address gasToken,
+        "0x0000000000000000000000000000000000000000",       // address refundReceiver,
+        signatureApprove.signatureBytes                     // bytes calldata
+    ).estimateGas({ from: deployedWalletAddress })
+    await sendTx(web3, approveTokenTxData, deployedWalletAddress, 0, Math.floor(gasTxApproveToken * 1.3), deployerAddress.privateKey)
+    console.log("allowance", await erc20Contract.methods.allowance(deployedWalletAddress, nodeRegistryAddress).call())
 
     /**
      * setting erc20 token
@@ -507,7 +566,7 @@ const deployGnosisSafeWallet = async () => {
     nonceWallet = await gnosisProxy.methods.nonce().call()
 
     const calculatedTxHashSetLogicContract = await gnosisProxy.methods.getTransactionHash(
-        nodeRegistryAddress,                                // address to,
+        nodeRegistryDataAddress,                                // address to,
         0,                                                  // uint256 value,
         setLogicContractTxData,                             // bytes memory data,
         0,                                                  // Enum.Operation operation,
@@ -524,7 +583,7 @@ const deployGnosisSafeWallet = async () => {
 
     // exec
     const execSetLogicData = gnosisProxy.methods.execTransaction(
-        nodeRegistryAddress,                                // address to,
+        nodeRegistryDataAddress,                                // address to,
         0,                                                  // uint256 value,
         setLogicContractTxData,                             // bytes calldata data,
         0,                                                  // Enum.Operation operation,
@@ -537,7 +596,7 @@ const deployGnosisSafeWallet = async () => {
     ).encodeABI()
 
     const gasExecTxDataSetLogicContract = await gnosisProxy.methods.execTransaction(
-        nodeRegistryAddress,                                // address to,
+        nodeRegistryDataAddress,                                // address to,
         0,                                                  // uint256 value,
         setLogicContractTxData,                             // bytes calldata data,
         0,                                                  // Enum.Operation operation,
@@ -551,20 +610,23 @@ const deployGnosisSafeWallet = async () => {
 
     await sendTx(web3, execSetLogicData, deployedWalletAddress, 0, Math.floor(gasExecTxDataSetLogicContract * 1.1), deployerAddress.privateKey)
 
+    console.log("owner data", await nodeRegistryData.methods.ownerContract().call())
+    console.log("nodeREg", nodeRegistryAddress)
     /**
      * onboarding nodes
-     
+    */
     console.log("node 1")
     const nodeOneAccount = web3.eth.accounts.privateKeyToAccount(process.env.SRV_PK1)
     const signatureOne = util.signForRegister(process.env.NODE_URL + "/nd-1", 29, 2000, deployedWalletAddress, nodeOneAccount.privateKey)
-    const txDataOne = nodeReg.methods.registerNodeFor(process.env.NODE_URL + "/nd-1", 29, 3600, nodeOneAccount.address, 2000, signatureOne.v, signatureOne.r, signatureOne.s).encodeABI()
-    const gasTxDataOne = await nodeReg.methods.registerNodeFor(process.env.NODE_URL + "/nd-1", 29, 3600, nodeOneAccount.address, 2000, signatureOne.v, signatureOne.r, signatureOne.s).estimateGas({ from: deployedWalletAddress, value: "10000000000000000" })
+
+    const txDataOne = nodeReg.methods.registerNodeFor(process.env.NODE_URL + "/nd-1", 29, nodeOneAccount.address, 2000, "10000000000000000", signatureOne.v, signatureOne.r, signatureOne.s).encodeABI()
+    const gasTxDataOne = await nodeReg.methods.registerNodeFor(process.env.NODE_URL + "/nd-1", 29, nodeOneAccount.address, 2000, "10000000000000000", signatureOne.v, signatureOne.r, signatureOne.s).estimateGas({ from: deployedWalletAddress })
 
     nonceWallet = await gnosisProxy.methods.nonce().call()
 
     const calcTxNodeOne = await gnosisProxy.methods.getTransactionHash(
         nodeRegistryAddress,                                // address to,
-        "10000000000000000",                                // uint256 value,
+        0,                                // uint256 value,
         txDataOne,                                          // bytes memory data,
         0,                                                  // Enum.Operation operation,
         Math.floor(gasTxDataOne * 1.2),                     // uint256 safeTxGas,
@@ -580,7 +642,7 @@ const deployGnosisSafeWallet = async () => {
 
     const registerNodeOneTxData = gnosisProxy.methods.execTransaction(
         nodeRegistryAddress,                                // address to,
-        "10000000000000000",                                // uint256 value,
+        0,                                // uint256 value,
         txDataOne,                                          // bytes memory data,
         0,                                                  // Enum.Operation operation,
         Math.floor(gasTxDataOne * 1.2),                     // uint256 safeTxGas,
@@ -593,7 +655,7 @@ const deployGnosisSafeWallet = async () => {
 
     const gasRegisterNodeOne = await gnosisProxy.methods.execTransaction(
         nodeRegistryAddress,                                // address to,
-        "10000000000000000",                                // uint256 value,
+        0,                                // uint256 value,
         txDataOne,                                          // bytes memory data,
         0,                                                  // Enum.Operation operation,
         Math.floor(gasTxDataOne * 1.2),                     // uint256 safeTxGas,
@@ -607,14 +669,14 @@ const deployGnosisSafeWallet = async () => {
 
     console.log("node 2")
     const nodeTwoAccount = web3.eth.accounts.privateKeyToAccount(process.env.SRV_PK2)
-    const signatureTwo = util.signForRegister(process.env.NODE_URL + "/nd-2", 29, 3600, 2000, deployedWalletAddress, nodeTwoAccount.privateKey)
-    const txDataTwo = nodeReg.methods.registerNodeFor(process.env.NODE_URL + "/nd-2", 29, 3600, nodeTwoAccount.address, 2000, signatureTwo.v, signatureTwo.r, signatureTwo.s).encodeABI()
-    const gasTxDataTwo = await nodeReg.methods.registerNodeFor(process.env.NODE_URL + "/nd-2", 29, 3600, nodeTwoAccount.address, 2000, signatureTwo.v, signatureTwo.r, signatureTwo.s).estimateGas({ from: deployedWalletAddress, value: "10000000000000000" })
+    const signatureTwo = util.signForRegister(process.env.NODE_URL + "/nd-2", 29, 2000, deployedWalletAddress, nodeTwoAccount.privateKey)
+    const txDataTwo = nodeReg.methods.registerNodeFor(process.env.NODE_URL + "/nd-2", 29, nodeTwoAccount.address, 2000, "10000000000000000", signatureTwo.v, signatureTwo.r, signatureTwo.s).encodeABI()
+    const gasTxDataTwo = await nodeReg.methods.registerNodeFor(process.env.NODE_URL + "/nd-2", 29, nodeTwoAccount.address, 2000, "10000000000000000", signatureTwo.v, signatureTwo.r, signatureTwo.s).estimateGas({ from: deployedWalletAddress })
     nonceWallet = await gnosisProxy.methods.nonce().call()
 
     const calcTxNodeTwo = await gnosisProxy.methods.getTransactionHash(
         nodeRegistryAddress,                                // address to,
-        "10000000000000000",                                // uint256 value,
+        0,                                // uint256 value,
         txDataTwo,                                          // bytes memory data,
         0,                                                  // Enum.Operation operation,
         Math.floor(gasTxDataTwo * 1.2),                     // uint256 safeTxGas,
@@ -630,7 +692,7 @@ const deployGnosisSafeWallet = async () => {
 
     const registerNodeTwoTxData = gnosisProxy.methods.execTransaction(
         nodeRegistryAddress,                                // address to,
-        "10000000000000000",                                // uint256 value,
+        0,                                // uint256 value,
         txDataTwo,                                          // bytes memory data,
         0,                                                  // Enum.Operation operation,
         Math.floor(gasTxDataTwo * 1.2),                     // uint256 safeTxGas,
@@ -643,7 +705,7 @@ const deployGnosisSafeWallet = async () => {
 
     const gasRegisterNodeTwo = await gnosisProxy.methods.execTransaction(
         nodeRegistryAddress,                                // address to,
-        "10000000000000000",                                // uint256 value,
+        0,                                // uint256 value,
         txDataTwo,                                          // bytes memory data,
         0,                                                  // Enum.Operation operation,
         Math.floor(gasTxDataTwo * 1.2),                     // uint256 safeTxGas,
@@ -658,14 +720,14 @@ const deployGnosisSafeWallet = async () => {
 
     console.log("node 3")
     const nodeThreeAccount = web3.eth.accounts.privateKeyToAccount(process.env.SRV_PK3)
-    const signatureThree = util.signForRegister(process.env.NODE_URL + "/nd-3", 29, 3600, 2000, deployedWalletAddress, nodeThreeAccount.privateKey)
-    const txDataThree = nodeReg.methods.registerNodeFor(process.env.NODE_URL + "/nd-3", 29, 3600, nodeThreeAccount.address, 2000, signatureThree.v, signatureThree.r, signatureThree.s).encodeABI()
-    const gasTxDataThree = await nodeReg.methods.registerNodeFor(process.env.NODE_URL + "/nd-3", 29, 3600, nodeThreeAccount.address, 2000, signatureThree.v, signatureThree.r, signatureThree.s).estimateGas({ from: deployedWalletAddress, value: "10000000000000000" })
+    const signatureThree = util.signForRegister(process.env.NODE_URL + "/nd-3", 29, 2000, deployedWalletAddress, nodeThreeAccount.privateKey)
+    const txDataThree = nodeReg.methods.registerNodeFor(process.env.NODE_URL + "/nd-3", 29, nodeThreeAccount.address, 2000, "10000000000000000", signatureThree.v, signatureThree.r, signatureThree.s).encodeABI()
+    const gasTxDataThree = await nodeReg.methods.registerNodeFor(process.env.NODE_URL + "/nd-3", 29, nodeThreeAccount.address, 2000, "10000000000000000", signatureThree.v, signatureThree.r, signatureThree.s).estimateGas({ from: deployedWalletAddress })
     nonceWallet = await gnosisProxy.methods.nonce().call()
 
     const calcTxNodeThree = await gnosisProxy.methods.getTransactionHash(
         nodeRegistryAddress,                                // address to,
-        "10000000000000000",                                // uint256 value,
+        0,                                // uint256 value,
         txDataThree,                                        // bytes memory data,
         0,                                                  // Enum.Operation operation,
         Math.floor(gasTxDataThree * 1.2),                   // uint256 safeTxGas,
@@ -681,7 +743,7 @@ const deployGnosisSafeWallet = async () => {
 
     const registerNodeThreeTxData = gnosisProxy.methods.execTransaction(
         nodeRegistryAddress,                                // address to,
-        "10000000000000000",                                // uint256 value,
+        0,                                // uint256 value,
         txDataThree,                                        // bytes memory data,
         0,                                                  // Enum.Operation operation,
         Math.floor(gasTxDataThree * 1.2),                   // uint256 safeTxGas,
@@ -694,7 +756,7 @@ const deployGnosisSafeWallet = async () => {
 
     const gasRegisterNodeThree = await gnosisProxy.methods.execTransaction(
         nodeRegistryAddress,                                // address to,
-        "10000000000000000",                                // uint256 value,
+        0,                                // uint256 value,
         txDataThree,                                        // bytes memory data,
         0,                                                  // Enum.Operation operation,
         Math.floor(gasTxDataThree * 1.2),                   // uint256 safeTxGas,
@@ -708,14 +770,14 @@ const deployGnosisSafeWallet = async () => {
 
     console.log("node 4")
     const nodeFourAccount = web3.eth.accounts.privateKeyToAccount(process.env.SRV_PK4)
-    const signatureFour = util.signForRegister(process.env.NODE_URL + "/nd-4", 29, 3600, 2000, deployedWalletAddress, nodeFourAccount.privateKey)
-    const txDataFour = nodeReg.methods.registerNodeFor(process.env.NODE_URL + "/nd-4", 29, 3600, signatureFour.address, 2000, signatureFour.v, signatureFour.r, signatureFour.s).encodeABI()
-    const gasTxDataFour = await nodeReg.methods.registerNodeFor(process.env.NODE_URL + "/nd-4", 29, 3600, signatureFour.address, 2000, signatureFour.v, signatureFour.r, signatureFour.s).estimateGas({ from: deployedWalletAddress, value: "10000000000000000" })
+    const signatureFour = util.signForRegister(process.env.NODE_URL + "/nd-4", 29, 2000, deployedWalletAddress, nodeFourAccount.privateKey)
+    const txDataFour = nodeReg.methods.registerNodeFor(process.env.NODE_URL + "/nd-4", 29, signatureFour.address, 2000, "10000000000000000", signatureFour.v, signatureFour.r, signatureFour.s).encodeABI()
+    const gasTxDataFour = await nodeReg.methods.registerNodeFor(process.env.NODE_URL + "/nd-4", 29, signatureFour.address, 2000, "10000000000000000", signatureFour.v, signatureFour.r, signatureFour.s).estimateGas({ from: deployedWalletAddress })
     nonceWallet = await gnosisProxy.methods.nonce().call()
 
     const calcTxNodeFour = await gnosisProxy.methods.getTransactionHash(
         nodeRegistryAddress,                                // address to,
-        "10000000000000000",                                // uint256 value,
+        0,                                // uint256 value,
         txDataFour,                                         // bytes memory data,
         0,                                                  // Enum.Operation operation,
         Math.floor(gasTxDataFour * 1.2),                    // uint256 safeTxGas,
@@ -731,7 +793,7 @@ const deployGnosisSafeWallet = async () => {
 
     const registerNodeFourTxData = gnosisProxy.methods.execTransaction(
         nodeRegistryAddress,                                // address to,
-        "10000000000000000",                                // uint256 value,
+        0,                                // uint256 value,
         txDataFour,                                         // bytes memory data,
         0,                                                  // Enum.Operation operation,
         Math.floor(gasTxDataFour * 1.2),                    // uint256 safeTxGas,
@@ -744,7 +806,7 @@ const deployGnosisSafeWallet = async () => {
 
     const gasRegisterNodeFour = await gnosisProxy.methods.execTransaction(
         nodeRegistryAddress,                                // address to,
-        "10000000000000000",                                // uint256 value,
+        0,                                // uint256 value,
         txDataFour,                                         // bytes memory data,
         0,                                                  // Enum.Operation operation,
         Math.floor(gasTxDataFour * 1.2),                    // uint256 safeTxGas,
@@ -759,14 +821,14 @@ const deployGnosisSafeWallet = async () => {
 
     console.log("node 5")
     const nodeFiveAccount = web3.eth.accounts.privateKeyToAccount(process.env.SRV_PK5)
-    const signatureFive = util.signForRegister(process.env.NODE_URL + "/nd-5", 29, 3600, 2000, deployedWalletAddress, nodeFiveAccount.privateKey)
-    const txDataFive = nodeReg.methods.registerNodeFor(process.env.NODE_URL + "/nd-5", 29, 3600, nodeFiveAccount.address, 2000, signatureFive.v, signatureFive.r, signatureFive.s).encodeABI()
-    const gasTxDataFive = await nodeReg.methods.registerNodeFor(process.env.NODE_URL + "/nd-5", 29, 3600, nodeFiveAccount.address, 2000, signatureFive.v, signatureFive.r, signatureFive.s).estimateGas({ from: deployedWalletAddress, value: "10000000000000000" })
+    const signatureFive = util.signForRegister(process.env.NODE_URL + "/nd-5", 29, 2000, deployedWalletAddress, nodeFiveAccount.privateKey)
+    const txDataFive = nodeReg.methods.registerNodeFor(process.env.NODE_URL + "/nd-5", 29, nodeFiveAccount.address, 2000, "10000000000000000", signatureFive.v, signatureFive.r, signatureFive.s).encodeABI()
+    const gasTxDataFive = await nodeReg.methods.registerNodeFor(process.env.NODE_URL + "/nd-5", 29, nodeFiveAccount.address, 2000, "10000000000000000", signatureFive.v, signatureFive.r, signatureFive.s).estimateGas({ from: deployedWalletAddress })
     nonceWallet = await gnosisProxy.methods.nonce().call()
 
     const calcTxNodeFive = await gnosisProxy.methods.getTransactionHash(
         nodeRegistryAddress,                                // address to,
-        "10000000000000000",                                // uint256 value,
+        0,                                // uint256 value,
         txDataFive,                                         // bytes memory data,
         0,                                                  // Enum.Operation operation,
         Math.floor(gasTxDataFive * 1.2),                    // uint256 safeTxGas,
@@ -782,7 +844,7 @@ const deployGnosisSafeWallet = async () => {
 
     const registerNodeFiveTxData = gnosisProxy.methods.execTransaction(
         nodeRegistryAddress,                                // address to,
-        "10000000000000000",                                // uint256 value,
+        0,                                // uint256 value,
         txDataFive,                                         // bytes memory data,
         0,                                                  // Enum.Operation operation,
         Math.floor(gasTxDataFive * 1.2),                    // uint256 safeTxGas,
@@ -795,7 +857,7 @@ const deployGnosisSafeWallet = async () => {
 
     const gasRegisterNodeFive = await gnosisProxy.methods.execTransaction(
         nodeRegistryAddress,                                // address to,
-        "10000000000000000",                                // uint256 value,
+        0,                                // uint256 value,
         txDataFive,                                         // bytes memory data,
         0,                                                  // Enum.Operation operation,
         Math.floor(gasTxDataFive * 1.2),                    // uint256 safeTxGas,
@@ -806,7 +868,7 @@ const deployGnosisSafeWallet = async () => {
         signatureNodeFive.signatureBytes                    // bytes calldata
     ).estimateGas({ from: deployedWalletAddress })
     await sendTx(web3, registerNodeFiveTxData, deployedWalletAddress, 0, Math.floor(gasRegisterNodeFive * 1.3), deployerAddress.privateKey)
-*/
+
     console.log("removing deploy-address from multisig")
     const txDataRemove = gnosisProxy.methods.removeOwner("0xC2c2c26961e5560081003Bb157549916B21744Db", deployerAddress.address, 2).encodeABI()
 
@@ -843,19 +905,12 @@ const deployGnosisSafeWallet = async () => {
     await sendTx(web3, txRemove, deployedWalletAddress, 0, Math.floor(250000 * 1.1), deployerAddress.privateKey)
 
     console.log("")
-    /*
+
     for (let i = 0; i < 5; i++) {
-        const n = await nodeReg.methods.nodes(i).call()
         console.log("node", i)
-        console.log("url", n.url)
-        console.log("deposit", n.deposit)
-        console.log("timeout", n.timeout)
-        console.log("props", n.props)
-        console.log("weight", n.weight)
-        console.log("signer", n.signer)
-        console.log("")
+        console.log(await nodeRegistryData.methods.getIn3NodeInformation(i).call())
     }
-    */
+
 
     console.log("-----------")
     console.log("nodeRegistryData-address", nodeRegistryDataAddress)
