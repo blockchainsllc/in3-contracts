@@ -80,10 +80,10 @@ contract NodeRegistryLogic {
     uint constant internal YEAR_DEFINITION = 1 days * 365;
 
     /// limit for ether per node in the 1st year
-    uint public MAX_DEPOSIT_FIRST_YEAR;
+    uint public maxDepositFirstYear;
 
     /// min deposit required for registering a node
-    uint public MIN_DEPOSIT;
+    uint public minDeposit;
 
     /// version: major minor fork(000) date(yyyy/mm/dd)
     uint constant public VERSION = 12300020190709;
@@ -108,8 +108,8 @@ contract NodeRegistryLogic {
         require(address(_nodeRegistryData) != address(0x0), "no nodeRegistry address provided");
         nodeRegistryData = _nodeRegistryData;
 
-        MIN_DEPOSIT = _minDeposit;
-        MAX_DEPOSIT_FIRST_YEAR = 2000 * MIN_DEPOSIT;
+        minDeposit = _minDeposit;
+        maxDepositFirstYear = 2000 * minDeposit;
     }
 
     /// @notice applies the pending update
@@ -522,11 +522,11 @@ contract NodeRegistryLogic {
     /// @dev will fail when the provided timeout is greater then 1 year
     function _checkNodePropertiesInternal(uint256 _deposit) internal view {
 
-        require(_deposit >= MIN_DEPOSIT, "not enough deposit");
+        require(_deposit >= minDeposit, "not enough deposit");
 
         // solium-disable-next-line security/no-block-members
         if (block.timestamp < timestampAdminKeyActive) { // solhint-disable-line not-rely-on-time
-            require(_deposit < MAX_DEPOSIT_FIRST_YEAR, "Limit of 50 ETH reached");
+            require(_deposit < maxDepositFirstYear, "Limit of 50 ETH reached");
         }
     }
 }
