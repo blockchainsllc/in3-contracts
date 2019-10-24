@@ -35,7 +35,7 @@ const deployBlockHashRegistry = async (web3, privateKey) => {
     return tx
 }
 
-const deployNodeRegistryLogic = async (web3, blockHashRegistryAddress, nodeRegistryDataAddress, privateKey) => {
+const deployNodeRegistryLogic = async (web3, blockHashRegistryAddress, nodeRegistryDataAddress, privateKey, minDeposit) => {
 
     const ethAcc = await web3.eth.accounts.privateKeyToAccount(privateKey ? privateKey : "0x4d5db4107d237df6a3d58ee5f70ae63d73d7658d4026f2eefd2f204c81682cb7");
 
@@ -50,7 +50,7 @@ const deployNodeRegistryLogic = async (web3, blockHashRegistryAddress, nodeRegis
 
     const transactionParams = {
         from: ethAcc.address,
-        data: bin.bytecode + web3.eth.abi.encodeParameters(['address', 'address'], [bhAddress, nodeRegistryDataAddress]).substr(2),
+        data: bin.bytecode + web3.eth.abi.encodeParameters(['address', 'address', 'uint'], [bhAddress, nodeRegistryDataAddress, minDeposit || "10000000000000000"]).substr(2),
         gas: blockBefore.gasLimit,
         nonce: nonce,
         gasPrice: gasPrice,

@@ -80,10 +80,10 @@ contract NodeRegistryLogic {
     uint constant internal YEAR_DEFINITION = 1 days * 365;
 
     /// limit for ether per node in the 1st year
-    uint constant public MAX_TOKEN_LIMIT_FIRST_YEAR = 50000000000000000000; // 50 ether
+    uint public MAX_DEPOSIT_FIRST_YEAR;
 
     /// min deposit required for registering a node
-    uint constant public MIN_DEPOSIT = 10000000000000000; // 10 finney
+    uint public MIN_DEPOSIT;
 
     /// version: major minor fork(000) date(yyyy/mm/dd)
     uint constant public VERSION = 12300020190709;
@@ -97,7 +97,7 @@ contract NodeRegistryLogic {
     /// @param _blockRegistry address of a BlockhashRegistry-contract
     /// @param _nodeRegistryData address of the nodeRegistryData-contract
     /// @dev cannot be deployed in a genesis block
-    constructor(BlockhashRegistry _blockRegistry, NodeRegistryData _nodeRegistryData) public {
+    constructor(BlockhashRegistry _blockRegistry, NodeRegistryData _nodeRegistryData, uint _minDeposit) public {
 
         require(address(_blockRegistry) != address(0x0), "no blockRegistry address provided");
         blockRegistry = _blockRegistry;
@@ -107,6 +107,9 @@ contract NodeRegistryLogic {
         adminKey = msg.sender;
         require(address(_nodeRegistryData) != address(0x0), "no nodeRegistry address provided");
         nodeRegistryData = _nodeRegistryData;
+
+        MIN_DEPOSIT = _minDeposit;
+        MAX_DEPOSIT_FIRST_YEAR = 2000 * MIN_DEPOSIT;
     }
 
     /// @notice applies the pending update
@@ -523,7 +526,7 @@ contract NodeRegistryLogic {
 
         // solium-disable-next-line security/no-block-members
         if (block.timestamp < timestampAdminKeyActive) { // solhint-disable-line not-rely-on-time
-            require(_deposit < MAX_TOKEN_LIMIT_FIRST_YEAR, "Limit of 50 ETH reached");
+            require(_deposit < MAX_DEPOSIT_FIRST_YEAR, "Limit of 50 ETH reached");
         }
     }
 }

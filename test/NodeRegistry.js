@@ -98,7 +98,7 @@ contract('NodeRegistry', async () => {
 
     it("should be able to register a node", async () => {
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
         const contracts = await deployment.deployContracts(web3)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
         const nodeRegistryData = new web3.eth.Contract(NodeRegistryData.abi, contracts.nodeRegistryData)
@@ -109,14 +109,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk).catch(_ => false))
 
         // approve erc20 tokens
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
@@ -129,7 +129,7 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
@@ -137,7 +137,7 @@ contract('NodeRegistry', async () => {
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -152,7 +152,7 @@ contract('NodeRegistry', async () => {
 
     it("should fail trying to register a node with the same url twice", async () => {
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
         const contracts = await deployment.deployContracts(web3)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
         const nodeRegistryData = new web3.eth.Contract(NodeRegistryData.abi, contracts.nodeRegistryData)
@@ -163,14 +163,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk).catch(_ => false))
 
         // approve erc20 tokens
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
@@ -183,14 +183,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
         assert.strictEqual(registeredNode.weight, '2000')
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -200,8 +200,8 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
-        const pk2 = await utils.createAccount(null, '400000000000000000000')
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk2)
+        const pk2 = await utils.createAccount(null, '40000000000000000')
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk2)
 
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk2)
 
@@ -210,7 +210,7 @@ contract('NodeRegistry', async () => {
 
     it("should fail trying to register a node with the same signer twice", async () => {
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
         const contracts = await deployment.deployContracts(web3)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
         const nodeRegistryData = new web3.eth.Contract(NodeRegistryData.abi, contracts.nodeRegistryData)
@@ -221,14 +221,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk).catch(_ => false))
 
         // approve erc20 tokens
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
@@ -241,7 +241,7 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
@@ -249,7 +249,7 @@ contract('NodeRegistry', async () => {
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -259,17 +259,17 @@ contract('NodeRegistry', async () => {
 
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
-        const txDataTwo = nodeRegistryLogic.methods.registerNode("#2", 65000, 3600, "40000000000000000000").encodeABI()
+        const txDataTwo = nodeRegistryLogic.methods.registerNode("#2", 65000, 3600, "40000000000000000").encodeABI()
         assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataTwo }, pk).catch(_ => false))
     })
 
 
 
     it("should remove a node with the signerKey", async () => {
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
-        const pk2 = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
+        const pk2 = await utils.createAccount(null, '40000000000000000')
 
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
@@ -281,14 +281,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -297,7 +297,7 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.weight, '2000')
@@ -306,7 +306,7 @@ contract('NodeRegistry', async () => {
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -317,10 +317,10 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
         // approve 2nd 
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk2)
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk2)
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk2)
 
-        const txDataTwo = nodeRegistryLogic.methods.registerNode("#2", 65000, 64, '40000000000000000000').encodeABI()
+        const txDataTwo = nodeRegistryLogic.methods.registerNode("#2", 65000, 64, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataTwo, }, pk2)
 
         assert.strictEqual('2', await nodeRegistryData.methods.totalNodes().call())
@@ -347,16 +347,16 @@ contract('NodeRegistry', async () => {
         const lockedTime = blockTime + 40 * 86400
         assert.strictEqual(signerInfo.owner, ethAcc.address)
         assert.strictEqual(signerInfo.stage, "3")
-        assert.strictEqual(signerInfo.depositAmount, "40000000000000000000")
+        assert.strictEqual(signerInfo.depositAmount, "40000000000000000")
         assert.strictEqual(signerInfo.lockedTime, "" + lockedTime)
 
     })
 
     it("should fail removing an non existing node", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
 
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
@@ -368,14 +368,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -384,7 +384,7 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
@@ -392,7 +392,7 @@ contract('NodeRegistry', async () => {
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -412,7 +412,7 @@ contract('NodeRegistry', async () => {
 
     it("should fail removing a node with a non signerKey", async () => {
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
 
         const contracts = await deployment.deployContracts(web3)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
@@ -424,14 +424,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -440,7 +440,7 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.weight, '2000')
@@ -448,7 +448,7 @@ contract('NodeRegistry', async () => {
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -470,7 +470,7 @@ contract('NodeRegistry', async () => {
 
     it("should fail when trying to register with a too low deposit", async () => {
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
 
         const contracts = await deployment.deployContracts(web3)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
@@ -482,10 +482,10 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
@@ -521,10 +521,10 @@ contract('NodeRegistry', async () => {
 
     it("should unregister a node as node-owner", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
-        const pk2 = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
+        const pk2 = await utils.createAccount(null, '40000000000000000')
 
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
@@ -536,14 +536,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -552,7 +552,7 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.weight, '2000')
@@ -560,7 +560,7 @@ contract('NodeRegistry', async () => {
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -571,10 +571,10 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
         // approve 2nd 
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk2)
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk2)
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk2)
 
-        const txDataTwo = nodeRegistryLogic.methods.registerNode("#2", 65000, 64, '40000000000000000000').encodeABI()
+        const txDataTwo = nodeRegistryLogic.methods.registerNode("#2", 65000, 64, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataTwo, }, pk2)
 
         assert.strictEqual('2', await nodeRegistryData.methods.totalNodes().call())
@@ -595,17 +595,17 @@ contract('NodeRegistry', async () => {
         const lockedTime = blockTime + 40 * 86400
         assert.strictEqual(signerInfo.owner, ethAcc.address)
         assert.strictEqual(signerInfo.stage, "3")
-        assert.strictEqual(signerInfo.depositAmount, "40000000000000000000")
+        assert.strictEqual(signerInfo.depositAmount, "40000000000000000")
         assert.strictEqual(signerInfo.lockedTime, "" + lockedTime)
 
     })
 
     it("should fail unregistering a node as non-node-owner", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
-        const pk2 = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
+        const pk2 = await utils.createAccount(null, '40000000000000000')
 
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
@@ -617,14 +617,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -633,14 +633,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -657,10 +657,10 @@ contract('NodeRegistry', async () => {
 
     it("should fail unregistering a non existing node", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
-        const pk2 = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
+        const pk2 = await utils.createAccount(null, '40000000000000000')
 
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
@@ -672,14 +672,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -688,14 +688,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -713,9 +713,9 @@ contract('NodeRegistry', async () => {
 
     it("should transfer the ownership of a node", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
 
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
@@ -727,14 +727,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -743,14 +743,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -778,9 +778,9 @@ contract('NodeRegistry', async () => {
 
     it("should fail transfering the ownership of a node when being in the wrong state", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
 
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
@@ -792,14 +792,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -808,14 +808,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -844,9 +844,9 @@ contract('NodeRegistry', async () => {
 
     it("should fail trying to change owner to 0x0", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
 
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
@@ -858,14 +858,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -874,14 +874,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -905,9 +905,9 @@ contract('NodeRegistry', async () => {
 
     it("should fail trying to transfer the ownership while not being the owner", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
 
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
@@ -919,14 +919,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -935,14 +935,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -966,9 +966,9 @@ contract('NodeRegistry', async () => {
 
     it("should update a node and also changing his url", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
 
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
@@ -980,14 +980,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -996,14 +996,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -1019,7 +1019,7 @@ contract('NodeRegistry', async () => {
         const registeredNodeUpdated = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNodeUpdated.url, "abc")
-        assert.strictEqual(registeredNodeUpdated.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNodeUpdated.deposit, "40000000000000000")
         assert.strictEqual(registeredNodeUpdated.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNodeUpdated.props, '1')
         assert.strictEqual(registeredNodeUpdated.signer, ethAcc.address)
@@ -1027,7 +1027,7 @@ contract('NodeRegistry', async () => {
 
         const calcHashUpdated = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('1', 24),
                 in3Common.serialize.uint64('1'),
@@ -1042,9 +1042,9 @@ contract('NodeRegistry', async () => {
 
     it("should update a node increasing timeout and deposit", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000500')
 
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
@@ -1056,14 +1056,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000500' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000500")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -1072,14 +1072,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -1098,7 +1098,7 @@ contract('NodeRegistry', async () => {
         const registeredNodeUpdated = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNodeUpdated.url, "abc")
-        assert.strictEqual(registeredNodeUpdated.deposit, "40000000000000000500")
+        assert.strictEqual(registeredNodeUpdated.deposit, "40000000000000500")
         assert.strictEqual(registeredNodeUpdated.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNodeUpdated.props, '32000')
         assert.strictEqual(registeredNodeUpdated.signer, ethAcc.address)
@@ -1106,7 +1106,7 @@ contract('NodeRegistry', async () => {
 
         const calcHashUpdated = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000500')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000500')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('32000', 24),
                 in3Common.serialize.uint64('42'),
@@ -1120,9 +1120,9 @@ contract('NodeRegistry', async () => {
 
     it("should fail updating a node as non node owner", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
 
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
@@ -1134,14 +1134,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -1150,7 +1150,7 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
 
@@ -1158,7 +1158,7 @@ contract('NodeRegistry', async () => {
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -1169,7 +1169,7 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
         const txDataUpdate = nodeRegistryLogic.methods.updateNode(ethAcc.address, "abc", 32000, 2000, 0).encodeABI()
-        const nonOwner = await utils.createAccount(null, '400000000000000000000')
+        const nonOwner = await utils.createAccount(null, '40000000000000000')
 
         assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataUpdate }, nonOwner).catch(_ => false))
 
@@ -1178,9 +1178,9 @@ contract('NodeRegistry', async () => {
 
     it("should fail updating a non existing node", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
 
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
@@ -1192,14 +1192,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -1208,14 +1208,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -1224,7 +1224,7 @@ contract('NodeRegistry', async () => {
             ]))
 
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
-        const nonOwner = await utils.createAccount(null, '400000000000000000000')
+        const nonOwner = await utils.createAccount(null, '40000000000000000')
         const ethAccTwo = await web3.eth.accounts.privateKeyToAccount(nonOwner);
 
         const txDataUpdate = nodeRegistryLogic.methods.updateNode(ethAccTwo.address, "abc", 32000, 2000, 0).encodeABI()
@@ -1237,10 +1237,10 @@ contract('NodeRegistry', async () => {
 
     it("should fail updating a node when the new url is already taken", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
-        const pk2 = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
+        const pk2 = await utils.createAccount(null, '40000000000000000')
 
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
@@ -1252,14 +1252,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -1268,14 +1268,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -1286,10 +1286,10 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
         // approve 2nd 
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk2)
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk2)
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk2)
 
-        const txDataTwo = nodeRegistryLogic.methods.registerNode("#2", 65000, 64, '40000000000000000000').encodeABI()
+        const txDataTwo = nodeRegistryLogic.methods.registerNode("#2", 65000, 64, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataTwo, }, pk2)
 
         const txDataUpdate = nodeRegistryLogic.methods.updateNode(ethAcc.address, "#2", 32000, 2000, 0).encodeABI()
@@ -1299,9 +1299,9 @@ contract('NodeRegistry', async () => {
 
     it("should be able to register a node for a different signer", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
         const signerPK = await utils.createAccount()
 
         const contracts = await deployment.deployContracts(web3, deployKey)
@@ -1315,17 +1315,17 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
 
         const signature = utils.signForRegister("#1", 65000, 2000, ethAcc.address, signerPK)
 
-        const txData = nodeRegistryLogic.methods.registerNodeFor("#1", 65000, signerAcc.address, 2000, "40000000000000000000", signature.v, signature.r, signature.s).encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNodeFor("#1", 65000, signerAcc.address, 2000, "40000000000000000", signature.v, signature.r, signature.s).encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData }, pk)
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
 
@@ -1334,7 +1334,7 @@ contract('NodeRegistry', async () => {
         const block = await web3.eth.getBlock("latest")
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, signerAcc.address)
@@ -1342,7 +1342,7 @@ contract('NodeRegistry', async () => {
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -1357,9 +1357,9 @@ contract('NodeRegistry', async () => {
 
     it("should fail registering a node for a different signer when the v of the signature is wrong", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
         const signerPK = await utils.createAccount()
 
         const contracts = await deployment.deployContracts(web3, deployKey)
@@ -1373,26 +1373,26 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
 
         const signature = utils.signForRegister("#1", 65000, 2000, ethAcc.address, signerPK)
 
-        const txData = nodeRegistryLogic.methods.registerNodeFor("#1", 65000, signerAcc.address, 2000, "40000000000000000000", 0, signature.r, signature.s).encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNodeFor("#1", 65000, signerAcc.address, 2000, "40000000000000000", 0, signature.r, signature.s).encodeABI()
         assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData }, pk).catch(_ => false))
 
     })
 
     it("should fail registering with a wrong signature", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
         const signerPK = await utils.createAccount()
 
         const contracts = await deployment.deployContracts(web3, deployKey)
@@ -1406,26 +1406,26 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
 
         const signature = utils.signForRegister("#1", 65000, 2000, ethAcc.address, signerPK)
 
-        const txData = nodeRegistryLogic.methods.registerNodeFor("#2", 65000, signerAcc.address, 2000, "40000000000000000000", signature.v, signature.r, signature.s).encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNodeFor("#2", 65000, signerAcc.address, 2000, "40000000000000000", signature.v, signature.r, signature.s).encodeABI()
         assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData }, pk).catch(_ => false))
     })
 
 
     it("should update a registeredNodeFor-node and also changing his url ", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
         const signerPK = await utils.createAccount()
 
         const contracts = await deployment.deployContracts(web3, deployKey)
@@ -1439,17 +1439,17 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
 
         const signature = utils.signForRegister("#1", 65000, 2000, ethAcc.address, signerPK)
 
-        const txData = nodeRegistryLogic.methods.registerNodeFor("#1", 65000, signerAcc.address, 2000, "40000000000000000000", signature.v, signature.r, signature.s).encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNodeFor("#1", 65000, signerAcc.address, 2000, "40000000000000000", signature.v, signature.r, signature.s).encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData }, pk)
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
 
@@ -1458,14 +1458,14 @@ contract('NodeRegistry', async () => {
         const block = await web3.eth.getBlock("latest")
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, signerAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -1489,7 +1489,7 @@ contract('NodeRegistry', async () => {
         const registeredNodeUpdated = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNodeUpdated.url, "abc")
-        assert.strictEqual(registeredNodeUpdated.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNodeUpdated.deposit, "40000000000000000")
         assert.strictEqual(registeredNodeUpdated.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNodeUpdated.props, '32000')
         assert.strictEqual(registeredNodeUpdated.signer, signerAcc.address)
@@ -1497,7 +1497,7 @@ contract('NodeRegistry', async () => {
 
         const calcHashUpdated = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('32000', 24),
                 in3Common.serialize.uint64('42'),
@@ -1519,9 +1519,9 @@ contract('NodeRegistry', async () => {
 
     it("should successfully convict and revealConvict and a block within 256 blocks", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
 
         const convictCaller = await utils.createAccount()
         const convictCallerAcc = await web3.eth.accounts.privateKeyToAccount(convictCaller);
@@ -1536,14 +1536,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -1552,14 +1552,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -1608,16 +1608,16 @@ contract('NodeRegistry', async () => {
         const balanceContractAfter = await erc20Token.methods.balanceOf(contracts.nodeRegistryData).call()
 
         assert.strictEqual(balanceSenderBefore, "0")
-        assert.strictEqual(balanceContractBefore, "40000000000000000000")
-        assert.strictEqual(balanceContractAfter, "20000000000000000000")
-        assert.strictEqual(balanceSenderAfter, "20000000000000000000")
+        assert.strictEqual(balanceContractBefore, "40000000000000000")
+        assert.strictEqual(balanceContractAfter, "20000000000000000")
+        assert.strictEqual(balanceSenderAfter, "20000000000000000")
     })
 
     it("should fail revealing when the v of the signature is wrong", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
 
         const convictCaller = await utils.createAccount()
         const convictCallerAcc = await web3.eth.accounts.privateKeyToAccount(convictCaller);
@@ -1632,14 +1632,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -1648,14 +1648,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -1695,9 +1695,9 @@ contract('NodeRegistry', async () => {
 
     it("should fail when calling revealConvict too early", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
 
         const convictCaller = await utils.createAccount()
         const convictCallerAcc = await web3.eth.accounts.privateKeyToAccount(convictCaller);
@@ -1712,14 +1712,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -1728,14 +1728,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -1773,9 +1773,9 @@ contract('NodeRegistry', async () => {
 
     it("should fail revealConvicting when the hash is not correct", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
 
         const convictCaller = await utils.createAccount()
 
@@ -1789,14 +1789,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -1805,14 +1805,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -1852,9 +1852,9 @@ contract('NodeRegistry', async () => {
 
     it("should fail revealConvicting when signed blockhash was correct", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
 
         const convictCaller = await utils.createAccount()
         const convictCallerAcc = await web3.eth.accounts.privateKeyToAccount(convictCaller);
@@ -1869,14 +1869,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -1885,14 +1885,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -1932,9 +1932,9 @@ contract('NodeRegistry', async () => {
 
     it("should fail revealConvicting when the node did not sign the block", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
 
         const convictCaller = await utils.createAccount()
         const convictCallerAcc = await web3.eth.accounts.privateKeyToAccount(convictCaller);
@@ -1949,14 +1949,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -1965,14 +1965,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -2023,9 +2023,9 @@ contract('NodeRegistry', async () => {
 
     it("should fail when calling with a block older then 256 blocks and not found in the blockhash registry", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
 
         const convictCaller = await utils.createAccount()
         const convictCallerAcc = await web3.eth.accounts.privateKeyToAccount(convictCaller);
@@ -2040,14 +2040,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -2056,14 +2056,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -2102,9 +2102,9 @@ contract('NodeRegistry', async () => {
 
     it("should successfully convict an older block that has been found within the blockhash registry", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
 
         const signerPK = await utils.createAccount()
         const signerAcc = await web3.eth.accounts.privateKeyToAccount(signerPK);
@@ -2119,14 +2119,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -2135,14 +2135,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -2207,9 +2207,9 @@ contract('NodeRegistry', async () => {
 
     it("should fail convicting a node again after he was convicted", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
 
         const convictCaller = await utils.createAccount()
         const convictCallerAcc = await web3.eth.accounts.privateKeyToAccount(convictCaller);
@@ -2224,14 +2224,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -2240,14 +2240,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -2311,9 +2311,9 @@ contract('NodeRegistry', async () => {
 
     it("should successfully convict and revealConvict a node that is already unregistered", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
 
         const signerPK = await utils.createAccount()
         const signerAcc = await web3.eth.accounts.privateKeyToAccount(signerPK);
@@ -2328,14 +2328,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -2344,14 +2344,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -2398,18 +2398,18 @@ contract('NodeRegistry', async () => {
         const balanceContractAfter = await erc20Token.methods.balanceOf(contracts.nodeRegistryData).call()
 
         assert.strictEqual(balanceSenderBefore, "0")
-        assert.strictEqual(balanceContractBefore, "40000000000000000000")
-        assert.strictEqual(balanceContractAfter, "20000000000000000000")
-        assert.strictEqual(balanceSenderAfter, "20000000000000000000")
+        assert.strictEqual(balanceContractBefore, "40000000000000000")
+        assert.strictEqual(balanceContractAfter, "20000000000000000")
+        assert.strictEqual(balanceSenderAfter, "20000000000000000")
 
     })
 
 
     it("should fail returning the deposit of an active user", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
 
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
@@ -2421,14 +2421,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -2437,14 +2437,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -2461,10 +2461,10 @@ contract('NodeRegistry', async () => {
 
     it("should successfully return the deposit after the timeout is over", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
-        const pk2 = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
+        const pk2 = await utils.createAccount(null, '40000000000000000')
 
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
@@ -2476,14 +2476,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -2492,14 +2492,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -2510,10 +2510,10 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
         // approve 2nd 
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk2)
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk2)
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk2)
 
-        const txDataTwo = nodeRegistryLogic.methods.registerNode("#2", 65000, 64, '40000000000000000000').encodeABI()
+        const txDataTwo = nodeRegistryLogic.methods.registerNode("#2", 65000, 64, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataTwo, }, pk2)
         const registeredNodeTwo = await nodeRegistryData.methods.nodes(1).call()
 
@@ -2531,12 +2531,12 @@ contract('NodeRegistry', async () => {
         await utils.increaseTime(web3, 86400 * 40 + 1)
 
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
-        assert.strictEqual(await erc20Token.methods.balanceOf(contracts.nodeRegistryData).call(), "80000000000000000000")
+        assert.strictEqual(await erc20Token.methods.balanceOf(contracts.nodeRegistryData).call(), "80000000000000000")
 
         const txDataDepositReturn = nodeRegistryLogic.methods.returnDeposit(ethAcc.address).encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataDepositReturn }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000000")
-        assert.strictEqual(await erc20Token.methods.balanceOf(contracts.nodeRegistryData).call(), "40000000000000000000")
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
+        assert.strictEqual(await erc20Token.methods.balanceOf(contracts.nodeRegistryData).call(), "40000000000000000")
 
         const signerInfo = await nodeRegistryData.methods.signerIndex(ethAcc.address).call()
 
@@ -2550,10 +2550,10 @@ contract('NodeRegistry', async () => {
 
     it("should fail returning the deposit before the timeout is over", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
-        const pk2 = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
+        const pk2 = await utils.createAccount(null, '40000000000000000')
 
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
@@ -2565,14 +2565,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -2581,14 +2581,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -2599,10 +2599,10 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
         // approve 2nd 
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk2)
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk2)
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk2)
 
-        const txDataTwo = nodeRegistryLogic.methods.registerNode("#2", 65000, 64, '40000000000000000000').encodeABI()
+        const txDataTwo = nodeRegistryLogic.methods.registerNode("#2", 65000, 64, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataTwo, }, pk2)
         const registeredNodeTwo = await nodeRegistryData.methods.nodes(1).call()
 
@@ -2624,10 +2624,10 @@ contract('NodeRegistry', async () => {
 
     it("should fail returning the deposit of a node as non owner", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
-        const pk2 = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
+        const pk2 = await utils.createAccount(null, '40000000000000000')
 
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
@@ -2639,14 +2639,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -2655,14 +2655,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -2673,10 +2673,10 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
         // approve 2nd 
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk2)
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk2)
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk2)
 
-        const txDataTwo = nodeRegistryLogic.methods.registerNode("#2", 65000, 64, '40000000000000000000').encodeABI()
+        const txDataTwo = nodeRegistryLogic.methods.registerNode("#2", 65000, 64, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataTwo, }, pk2)
         const registeredNodeTwo = await nodeRegistryData.methods.nodes(1).call()
 
@@ -2694,7 +2694,7 @@ contract('NodeRegistry', async () => {
         await utils.increaseTime(web3, 86400 * 40 + 1)
 
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
-        assert.strictEqual(await erc20Token.methods.balanceOf(contracts.nodeRegistryData).call(), "80000000000000000000")
+        assert.strictEqual(await erc20Token.methods.balanceOf(contracts.nodeRegistryData).call(), "80000000000000000")
 
         const txDataDepositReturn = nodeRegistryLogic.methods.returnDeposit(ethAcc.address).encodeABI()
         assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataDepositReturn }, pk2).catch(_ => false))
@@ -2754,10 +2754,10 @@ contract('NodeRegistry', async () => {
 
     it("should fail removing a node with the signerKey after 1 year", async () => {
 
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
-        const pk = await utils.createAccount(null, '400000000000000000000')
-        const pk2 = await utils.createAccount(null, '400000000000000000000')
+        const pk = await utils.createAccount(null, '40000000000000000')
+        const pk2 = await utils.createAccount(null, '40000000000000000')
 
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
@@ -2769,14 +2769,14 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "0")
 
         const mintData = erc20Token.methods.mint().encodeABI()
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk)
-        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "400000000000000000000")
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk)
+        assert.strictEqual(await erc20Token.methods.balanceOf(ethAcc.address).call(), "40000000000000000")
 
-        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '400000000000000000000').encodeABI()
+        const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
         assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
-        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000000').encodeABI()
+        const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
         assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
@@ -2785,14 +2785,14 @@ contract('NodeRegistry', async () => {
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
         assert.strictEqual(registeredNode.url, "#1")
-        assert.strictEqual(registeredNode.deposit, "40000000000000000000")
+        assert.strictEqual(registeredNode.deposit, "40000000000000000")
         assert.strictEqual(registeredNode.registerTime, '' + block.timestamp)
         assert.strictEqual(registeredNode.props, '65000')
         assert.strictEqual(registeredNode.signer, ethAcc.address)
 
         const calcHash = ethUtil.keccak(
             Buffer.concat([
-                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000000')),
+                in3Common.serialize.bytes32(in3Common.util.toBN('40000000000000000')),
                 in3Common.serialize.uint64(block.timestamp),
                 in3Common.util.toBuffer('65000', 24),
                 in3Common.serialize.uint64('2000'),
@@ -2803,10 +2803,10 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(registeredNode.proofHash, "0x" + calcHash.toString('hex'))
 
         // approve 2nd 
-        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '400000000000000000000' }, pk2)
+        await utils.handleTx({ to: contracts.ERC20Token, data: mintData, value: '40000000000000000' }, pk2)
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk2)
 
-        const txDataTwo = nodeRegistryLogic.methods.registerNode("#2", 65000, 64, '40000000000000000000').encodeABI()
+        const txDataTwo = nodeRegistryLogic.methods.registerNode("#2", 65000, 64, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataTwo, }, pk2)
 
         assert.strictEqual('2', await nodeRegistryData.methods.totalNodes().call())
@@ -2827,7 +2827,7 @@ contract('NodeRegistry', async () => {
 
     })
     it("should update and active new logic contract", async () => {
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
         const nodeRegistryData = new web3.eth.Contract(NodeRegistryData.abi, contracts.nodeRegistryData)
@@ -2854,7 +2854,7 @@ contract('NodeRegistry', async () => {
     })
 
     it("should fail updating and activating new logic contract when timeout it not yet over", async () => {
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
 
@@ -2868,7 +2868,7 @@ contract('NodeRegistry', async () => {
     })
 
     it("should fail activating when no new contract is set", async () => {
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
 
@@ -2877,7 +2877,7 @@ contract('NodeRegistry', async () => {
     })
 
     it("should fail trying set 0x0 as new logic contract", async () => {
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
         const contracts = await deployment.deployContracts(web3, deployKey)
         const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
 
@@ -2886,7 +2886,7 @@ contract('NodeRegistry', async () => {
     })
 
     it("should fail trying set 0x0 as new token contract", async () => {
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
         const deployTx = await deployment.deployNodeRegistryData(web3, deployKey)
         const nodeRegistryDataAddress = deployTx.contractAddress
@@ -2897,7 +2897,7 @@ contract('NodeRegistry', async () => {
     })
 
     it("should only change timeout of data as admin/owner", async () => {
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
         const randomKey = await utils.createAccount()
 
         const deployTx = await deployment.deployNodeRegistryData(web3, deployKey)
@@ -2917,7 +2917,7 @@ contract('NodeRegistry', async () => {
     })
 
     it("should prevent datacontract to change to 0x0 as owner", async () => {
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
         const deployTx = await deployment.deployNodeRegistryData(web3, deployKey)
 
@@ -2931,7 +2931,7 @@ contract('NodeRegistry', async () => {
     })
 
     it("should fail in data contract when erc-token transfers fails", async () => {
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
         const deployTxDataContract = await deployment.deployNodeRegistryData(web3, deployKey)
         const nodeRegistryDataAddress = deployTxDataContract.contractAddress
@@ -2950,7 +2950,7 @@ contract('NodeRegistry', async () => {
 
 
     it("should fail in data contract when removing non existing node", async () => {
-        const deployKey = await utils.createAccount(null, '400000000000000000000')
+        const deployKey = await utils.createAccount(null, '40000000000000000')
 
         const deployTxDataContract = await deployment.deployNodeRegistryData(web3, deployKey)
         const nodeRegistryDataAddress = deployTxDataContract.contractAddress
