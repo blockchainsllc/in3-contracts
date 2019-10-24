@@ -195,7 +195,7 @@ contract BlockhashRegistry {
     /// @param _bHash blockhash of the 1st element of the _blockheaders-array
     /// @param _blockNumber blocknumber of the 1st element of the _blockheaders-array. This is only needed to verify the blockheader
     /// @return 0x0 if the functions detects a wrong chaining of blocks, blockhash of the last element of the array otherwhise
-    function reCalculateBlockheaders(bytes[] memory _blockheaders, bytes32 _bHash, uint _blockNumber) public pure returns (bytes32 bhash) {
+    function reCalculateBlockheaders(bytes[] memory _blockheaders, bytes32 _bHash, uint _blockNumber) public view returns (bytes32 bhash) {
 
         require(_blockheaders.length > 0, "no blockheaders provided");
         require(_bHash != 0x0, "invalid blockhash provided");
@@ -214,6 +214,14 @@ contract BlockhashRegistry {
             (calcParent, calcBlockhash, calcBlockNumber) = getParentAndBlockhash(_blockheaders[i]);
             if (calcBlockhash != currentBlockhash || calcParent == 0x0 || calcBlockNumber != currentBlockNumber) {
                 return 0x0;
+            }
+
+            uint currentBlock = block.number > 256 ? block.number : 256;
+
+            if (currentBlock - 256 < calcBlockNumber) {
+                if (calcBlockhash != blockhash(calcBlockNumber)) {
+                    return 0x0;
+                }
             }
             currentBlockhash = calcParent;
             currentBlockNumber--;

@@ -218,7 +218,7 @@ contract('BlockhashRegistry', async () => {
 
                 serialzedBlocks = serialzedBlocks.reverse()
                 const result = await blockHashContract.methods.reCalculateBlockheaders(serialzedBlocks, startHash, allBlocks[allBlocks.length - 1].number).call()
-                assert.strictEqual(result, firstBlock.hash)
+                assert.strictEqual(result, "0x0000000000000000000000000000000000000000000000000000000000000000")
             }
         }
     })
