@@ -2,18 +2,15 @@ const Web3 = require("web3")
 const fs = require("fs")
 const util = require("../src/utils/utils")
 
-const counterMapping = {}
 
-
+let errorCounter = 0
 
 const deployContract = async (web3, byteCode, privateKey) => {
 
     const transactionbBytecode = byteCode.startsWith("0x") ? byteCode : "0x" + byteCode
 
     const senderAddress = web3.eth.accounts.privateKeyToAccount(privateKey);
-
-    //    await timeout(15000)
-
+    await timeout(15000)
     const nonce = await web3.eth.getTransactionCount(senderAddress.address)
 
     const gasPrice = Math.floor(parseInt(await web3.eth.getGasPrice()) * 1.05)
@@ -29,12 +26,15 @@ const deployContract = async (web3, byteCode, privateKey) => {
 
     const signedTx = await web3.eth.accounts.signTransaction(transactionParams, privateKey);
     return (web3.eth.sendSignedTransaction(signedTx.rawTransaction)).catch(async (_) => {
-        if (!counterMapping[transactionParams]) counterMapping[transactionParams] = 1
-        else counterMapping[transactionParams]++
-        console.log("error count", counterMapping[transactionParams])
-        console.log("error", _)
-        if (counterMapping[transactionParams] < 5) {
-            await sendTx(web3, data, targetAddress, value, gasLimit, privateKey)
+        errorCounter++
+        console.log("errorCounter", errorCounter)
+        console.log(_)
+
+        if (errorCounter < 5) {
+            const deployTx = await deployContract(web3, byteCode, privateKey)
+            errorCounter = 0
+
+            return deployTx
         }
     });
 }
@@ -46,7 +46,7 @@ function timeout(ms) {
 
 const sendTx = async (web3, data, targetAddress, value, gasLimit, privateKey) => {
     const senderAddress = web3.eth.accounts.privateKeyToAccount(privateKey);
-    //  await timeout(15000)
+    await timeout(15000)
     const nonce = await web3.eth.getTransactionCount(senderAddress.address)
 
     const gasPrice = Math.floor(parseInt(await web3.eth.getGasPrice()) * 1.05)
@@ -63,14 +63,17 @@ const sendTx = async (web3, data, targetAddress, value, gasLimit, privateKey) =>
 
     const signedTx = await web3.eth.accounts.signTransaction(transactionParams, privateKey);
     return (web3.eth.sendSignedTransaction(signedTx.rawTransaction)).catch(async (_) => {
-        if (!counterMapping[transactionParams]) counterMapping[transactionParams] = 1
-        else counterMapping[transactionParams]++
 
-        console.log("error count", counterMapping[transactionParams])
-        console.log("error", _)
+        errorCounter++
+        console.log("errorCounter", errorCounter)
+        console.log(_)
 
-        if (counterMapping[transactionParams] < 5) {
-            await sendTx(web3, data, targetAddress, value, gasLimit, privateKey)
+        if (errorCounter < 5) {
+            const tx = await sendTx(web3, data, targetAddress, value, gasLimit, privateKey)
+            errorCounter = 0
+
+            return tx
+
         }
     });
 }
