@@ -305,9 +305,9 @@ const deployGnosisSafeWallet = async () => {
 
     const nodeRegistryInfo = JSON.parse(fs.readFileSync("build/contracts/NodeRegistryLogic.json"))
     //getting the txData 
-    const txDataCallDeployNodeRegistry = createCall.methods.performCreate(0, nodeRegistryInfo.bytecode + web3.eth.abi.encodeParameters(['address', 'address'], [blockHashRegistryAddress, nodeRegistryDataAddress]).substr(2)).encodeABI()
+    const txDataCallDeployNodeRegistry = createCall.methods.performCreate(0, nodeRegistryInfo.bytecode + web3.eth.abi.encodeParameters(['address', 'address', 'uint'], [blockHashRegistryAddress, nodeRegistryDataAddress, (process.env.MIN_DEPOSIT || '10000000000000000')]).substr(2)).encodeABI()
 
-    const gasTxDataCallDeployNodeRegistry = await createCall.methods.performCreate(0, nodeRegistryInfo.bytecode + web3.eth.abi.encodeParameters(['address', 'address'], [blockHashRegistryAddress, nodeRegistryDataAddress]).substr(2)).estimateGas()
+    const gasTxDataCallDeployNodeRegistry = await createCall.methods.performCreate(0, nodeRegistryInfo.bytecode + web3.eth.abi.encodeParameters(['address', 'address', 'uint'], [blockHashRegistryAddress, nodeRegistryDataAddress, (process.env.MIN_DEPOSIT || '10000000000000000')]).substr(2)).estimateGas()
 
     // getting the data for the gnosis-tx
     nonceWallet = await gnosisProxy.methods.nonce().call()
