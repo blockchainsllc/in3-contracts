@@ -3,7 +3,7 @@ const fs = require("fs")
 const util = require("../src/utils/utils")
 
 
-let errorCounter = 0
+let errorMapping = {}
 
 const deployContract = async (web3, byteCode, privateKey) => {
 
@@ -26,13 +26,19 @@ const deployContract = async (web3, byteCode, privateKey) => {
 
     const signedTx = await web3.eth.accounts.signTransaction(transactionParams, privateKey);
     return (web3.eth.sendSignedTransaction(signedTx.rawTransaction)).catch(async (_) => {
-        errorCounter++
-        console.log("errorCounter", errorCounter)
+
+        if (!errorMapping[byteCode]) {
+            errorMapping[byteCode] = 1
+        }
+        else {
+            errorMapping[byteCode]++
+        }
+
+        console.log("errorCounter", errorMapping[byteCode])
         console.log(_)
 
-        if (errorCounter < 5) {
+        if (errorMapping[byteCode] < 5) {
             const deployTx = await deployContract(web3, byteCode, privateKey)
-            errorCounter = 0
 
             return deployTx
         }
@@ -64,13 +70,18 @@ const sendTx = async (web3, data, targetAddress, value, gasLimit, privateKey) =>
     const signedTx = await web3.eth.accounts.signTransaction(transactionParams, privateKey);
     return (web3.eth.sendSignedTransaction(signedTx.rawTransaction)).catch(async (_) => {
 
-        errorCounter++
-        console.log("errorCounter", errorCounter)
+        if (!errorMapping[data]) {
+            errorMapping[data] = 1
+        }
+        else {
+            errorMapping[data]++
+        }
+        console.log("errorCounter", errorMapping[data])
         console.log(_)
 
-        if (errorCounter < 5) {
+        if (errorMapping[data] < 5) {
             const tx = await sendTx(web3, data, targetAddress, value, gasLimit, privateKey)
-            errorCounter = 0
+            errorMapping[data] = 0
 
             return tx
 
@@ -934,7 +945,6 @@ const deployGnosisSafeWallet = async () => {
         console.log("node", i)
         console.log(await nodeRegistryData.methods.getIn3NodeInformation(i).call())
     }
-
 
     console.log("-----------")
     console.log("nodeRegistryData-address", nodeRegistryDataAddress)
