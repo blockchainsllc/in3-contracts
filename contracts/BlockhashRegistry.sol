@@ -104,6 +104,7 @@ contract BlockhashRegistry {
     /// @notice returns the value from rlp encoded data.
     ///         This function is limited to only value up to 32 bytes length!
     /// @param _data rlp encoded data
+    /// @param _offset the offset
     /// @return the value
     function getRlpUint(bytes memory _data, uint _offset) public pure returns (uint value) {
         /// get the byte at offset to figure out the length of the value

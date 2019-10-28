@@ -122,15 +122,12 @@ contract NodeRegistryData {
         ownerContract = msg.sender;
     }
 
-    /// @notice removes an in3-server from the registry
+    /// @notice removes an in3-node from the nodeList
     /// @param _signer the signer-address of the in3-node
-    /// @dev only callable by the unregisterKey-account
-    /// @dev only callable in the 1st year after deployment
     function adminRemoveNodeFromRegistry(address _signer)
         external
         onlyLogicContract
     {
-
         SignerInformation memory si = signerIndex[_signer];
         _removeNodeInternal(si.index);
 
@@ -156,6 +153,7 @@ contract NodeRegistryData {
     function adminSetNodeDeposit(address _signer, uint _newDeposit) external onlyLogicContract returns (bool) {
         SignerInformation memory si = signerIndex[_signer];
         In3Node storage node = nodes[si.index];
+        require(node.signer == _signer, "not the correct signer of the in3-node");
         node.deposit = _newDeposit;
         return true;
     }
@@ -201,15 +199,14 @@ contract NodeRegistryData {
         return true;
     }
 
-    /// @notice commits a blocknumber and a hash
-    /// @notice must be called before revealConvict
+    /// @notice writes a value to te convictMapping to be used later for revealConvict in the logic contract
     /// @param _hash keccak256(wrong blockhash, msg.sender, v, r, s); used to prevent frontrunning.
-    /// @dev The v,r,s paramaters are from the signature of the wrong blockhash that the node provided
+    /// @param _caller the address for that called convict in the logic-contract
     function setConvict(bytes32 _hash, address _caller) external onlyLogicContract {
         convictMapping[_caller][_hash] = block.number;
     }
 
-    /// @notice register a new node as a owner using a different signer address
+    /// @notice registers a new node in the nodeList
     /// @dev only callable by the logic contract
     /// @param _url the url of the node, has to be unique
     /// @param _props properties of the node
@@ -370,7 +367,7 @@ contract NodeRegistryData {
         return true;
     }
 
-    /// @notice returns the SignerInformation of a signer
+    /// @notice returns the In3Node-struct of a certain index
     /// @param _index the position of the NodeInfo in the node-array
     /// @return the In3Node for the index provided
     function getIn3NodeInformation(uint _index) external view returns (In3Node memory) {
@@ -409,7 +406,7 @@ contract NodeRegistryData {
         return true;
     }
 
-    /// @notice calculates the sha3 hash of the most important properties in order to make the proof faster
+    /// @notice calculates the sha3 hash of the most important properties in order to make the proof more efficient
     /// @param _node the in3 node to calculate the hash from
     /// @return the hash of the properties of an in3-node
     function _calcProofHashInternal(In3Node memory _node) internal pure returns (bytes32) {
@@ -426,7 +423,7 @@ contract NodeRegistryData {
         );
     }
 
-    /// @notice handes the setting of the unregister values for a node internally
+    /// @notice Handles the setting of the unregister values for a node internally
     /// @param _si information of the signer
     /// @param _n information of the in3-node
     function _unregisterNodeInternal(SignerInformation  storage _si, In3Node memory _n) internal {

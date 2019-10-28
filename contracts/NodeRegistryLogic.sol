@@ -183,7 +183,7 @@ contract NodeRegistryLogic {
         external
     {
 
-        registerNodeInternal(
+        _registerNodeInternal(
             _url,
             _props,
             msg.sender,
@@ -242,7 +242,7 @@ contract NodeRegistryLogic {
 
         require(_signer == signer, "not the correct signature of the signer provided");
 
-        registerNodeInternal(
+        _registerNodeInternal(
             _url,
             _props,
             _signer,
@@ -411,8 +411,8 @@ contract NodeRegistryLogic {
 
     }
 
-    /// @notice updates a node by adding the msg.value to the deposit and setting the props or timeout
-    /// @dev of there is an additional deposit the owner has to approve the tokenTransfer before
+    /// @notice updates a node by changing its props
+    /// @dev if there is an additional deposit the owner has to approve the tokenTransfer before
     /// @param _signer the signer-address of the in3-node, used as an identifier
     /// @param _url the url, will be changed if different from the current one
     /// @param _props the new properties, will be changed if different from the current onec
@@ -420,7 +420,6 @@ contract NodeRegistryLogic {
     /// @param _additionalDeposit the additional deposit in erc20-token
     /// @dev reverts when the sender is not the owner of the node
     /// @dev reverts when the signer does not own a node
-    /// @dev reverts when trying to increase the timeout above 10 years
     /// @dev reverts when trying to change the url to an already existing one
     function updateNode(
         address _signer,
@@ -464,6 +463,26 @@ contract NodeRegistryLogic {
         );
     }
 
+    /// @notice returns the supported ERC20 token for registering a node
+    /// @return the supported ERC20 token
+    function supportedToken() external view returns (IERC20) {
+        return nodeRegistryData.supportedToken();
+    }
+
+    /// @notice function to check whether the allowed amount of deposit per server has been reached
+    /// @param _deposit the new amount of deposit a server has
+    /// @dev will fail when the deposit is greater than the maxDepositFirstYear in the 1st year
+    /// @dev will fail when the deposit is less than the minDeposit
+    function _checkNodePropertiesInternal(uint256 _deposit) internal view {
+
+        require(_deposit >= minDeposit, "not enough deposit");
+
+        // solium-disable-next-line security/no-block-members
+        if (block.timestamp < timestampAdminKeyActive) { // solhint-disable-line not-rely-on-time
+            require(_deposit < maxDepositFirstYear, "Limit of 50 ETH reached");
+        }
+    }
+
     /// @notice helper function for registering a node
     /// @param _url the url of the node
     /// @param _props the properties of the node
@@ -471,7 +490,7 @@ contract NodeRegistryLogic {
     /// @param _owner the owner of the node
     /// @param _deposit the deposit of the node
     /// @param _weight the weight of the node (# of requests per second he is able to handle)
-    function registerNodeInternal (
+    function _registerNodeInternal (
         string memory _url,
         uint192 _props,
         address _signer,
@@ -516,17 +535,4 @@ contract NodeRegistryLogic {
 
     }
 
-    /// @notice function to check whether the allowed amount of ether as deposit per server has been reached
-    /// @param _deposit the new amount of deposit a server has
-    /// @dev will fail when the deposit is greater then 50 ether in the 1st year
-    /// @dev will fail when the provided timeout is greater then 1 year
-    function _checkNodePropertiesInternal(uint256 _deposit) internal view {
-
-        require(_deposit >= minDeposit, "not enough deposit");
-
-        // solium-disable-next-line security/no-block-members
-        if (block.timestamp < timestampAdminKeyActive) { // solhint-disable-line not-rely-on-time
-            require(_deposit < maxDepositFirstYear, "Limit of 50 ETH reached");
-        }
-    }
 }
