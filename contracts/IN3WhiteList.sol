@@ -106,8 +106,16 @@ contract IN3WhiteList {
         emit LogNodeRemoved(_nodeAddr);
     }
 
-    function getWhiteList() public view returns (bytes memory) {
-        return whiteListNodesList;
+    function getWhiteList() public view returns (bytes memory tempBytes) {
+        tempBytes = whiteListNodesList;
+    }
+
+    function getProofHash() public view returns (bytes32 tempBytes) {
+        tempBytes = proofHash;
+    }
+
+    function getLastEventBlockNumber()  public view returns (uint) {
+        return lastEventBlockNumber;
     }
 
 }
