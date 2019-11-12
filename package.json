@@ -14,9 +14,9 @@
     "lint:solium": "node node_modules/ethlint/bin/solium.js -d contracts/",
     "lint:solhint": "node node_modules/solhint/solhint.js \"contracts/**/*.sol\" -w 0",
     "coverage": "npx solidity-coverage",
-    "solcCompile": "docker run --rm -v $(pwd)/contracts:/contracts ethereum/solc:0.5.10 --optimize --combined-json abi,bin,bin-runtime,compact-format,hashes,interface,metadata,srcmap-runtime /contracts/NodeRegistry.sol /contracts/BlockhashRegistry.sol > contracts/contracts.json",
-    "parity": "docker run --rm -p 8180:8180 -p 8545:8545 -p 8546:8546 docker.slock.it/core-technology/parity-timemachine:master",
-    "ganache": "node_modules/ganache-cli/cli.js --account=\"0x4d5db4107d237df6a3d58ee5f70ae63d73d7658d4026f2eefd2f204c81682cb7,4000000000000000000000000000000000\" --gasPrice=0x00 --gasLimit=0x7A1200"
+    "solcCompile": "docker run --rm -v $(pwd)/contracts:/contracts ethereum/solc:0.5.10 --optimize --combined-json abi,bin,bin-runtime,compact-format,hashes,interface,metadata,srcmap-runtime  /contracts/NodeRegistryData.sol /contracts/NodeRegistryLogic.sol /contracts/BlockhashRegistry.sol > contracts/contracts.json",
+    "parity": "docker pull docker.slock.it/core-technology/parity-timemachine:latest && docker run --rm -p 8180:8180 -p 8545:8545 -p 8546:8546 docker.slock.it/core-technology/parity-timemachine:latest",
+    "ganache": "node_modules/ganache-cli/cli.js --account=\"0x4d5db4107d237df6a3d58ee5f70ae63d73d7658d4026f2eefd2f204c81682cb7,4000000000000000000000000000000000\" --gasPrice=0x0 --gasLimit=0x8A1200"
   },
   "repository": {
     "type": "git",
@@ -26,14 +26,19 @@
   "license": "ISC",
   "devDependencies": {
     "crypto": "^1.0.1",
-    "ethlint": "^1.2.4",
     "ethereumjs-util": "^6.1.0",
+    "ethlint": "^1.2.4",
     "ganache-cli": "^6.6.0",
     "in3-common": "0.0.1-beta.7",
     "solc": "0.5.10",
     "solhint": "^2.1.0",
-    "solidity-coverage": "0.6.4",
+    "solidity-coverage": "^0.6.7",
     "truffle": "5.0.31",
     "web3": "^1.2.1"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^2.3.0",
+    "ethereumjs-utils": "^5.2.5",
+    "openzeppelin-solidity": "2.3.0"
   }
 }
