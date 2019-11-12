@@ -469,6 +469,12 @@ contract NodeRegistryLogic {
         return nodeRegistryData.supportedToken();
     }
 
+    /// @notice length of the nodelist
+    /// @return the number of total in3-nodes
+    function totalNodes() external view returns (uint) {
+        return nodeRegistryData.totalNodes();
+    }
+
     /// @notice function to check whether the allowed amount of deposit per server has been reached
     /// @param _deposit the new amount of deposit a server has
     /// @dev will fail when the deposit is greater than the maxDepositFirstYear in the 1st year

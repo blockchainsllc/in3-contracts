@@ -96,6 +96,16 @@ contract('NodeRegistry', async () => {
         assert.strictEqual(await nodeRegistry.methods.VERSION().call(), "12300020190709")
     })
 
+    it("should return the correct supportedToken", async () => {
+        const contracts = await deployment.deployContracts(web3)
+        const nodeRegistry = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
+        const nodeRegistryData = new web3.eth.Contract(NodeRegistryData.abi, contracts.nodeRegistryData)
+
+        assert.strictEqual(contracts.ERC20Token, await nodeRegistry.methods.supportedToken().call())
+        assert.strictEqual(contracts.ERC20Token, await nodeRegistryData.methods.supportedToken().call())
+
+    })
+
     it("should be able to register a node", async () => {
 
         const pk = await utils.createAccount(null, '40000000000000000')
@@ -119,11 +129,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
 
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -173,11 +183,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
 
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -231,11 +241,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
 
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -287,11 +297,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -323,14 +333,14 @@ contract('NodeRegistry', async () => {
         const txDataTwo = nodeRegistryLogic.methods.registerNode("#2", 65000, 64, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataTwo, }, pk2)
 
-        assert.strictEqual('2', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('2', await nodeRegistryLogic.methods.totalNodes().call())
         const registeredNodeTwo = await nodeRegistryData.methods.nodes(1).call()
 
         const txDataRemoval = nodeRegistryLogic.methods.adminRemoveNodeFromRegistry(ethAcc.address).encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataRemoval }, deployKey)
         const unregisterBlock = await web3.eth.getBlock('latest')
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
 
         const lastNode = await nodeRegistryData.methods.nodes(0).call()
 
@@ -374,11 +384,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -430,11 +440,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -488,7 +498,7 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '10000').encodeABI()
         assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk).catch(_ => false))
     })
@@ -513,7 +523,7 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '50000000000000000001').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '50000000000000000001').encodeABI()
         assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk).catch(_ => false))
     })
@@ -542,11 +552,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -577,12 +587,12 @@ contract('NodeRegistry', async () => {
         const txDataTwo = nodeRegistryLogic.methods.registerNode("#2", 65000, 64, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataTwo, }, pk2)
 
-        assert.strictEqual('2', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('2', await nodeRegistryLogic.methods.totalNodes().call())
         const registeredNodeTwo = await nodeRegistryData.methods.nodes(1).call()
 
         const txDataRemoval = nodeRegistryLogic.methods.unregisteringNode(ethAcc.address).encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataRemoval }, pk)
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
 
         const lastNode = await nodeRegistryData.methods.nodes(0).call()
 
@@ -623,11 +633,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -678,11 +688,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -733,11 +743,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -798,11 +808,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -864,11 +874,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -925,11 +935,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -986,11 +996,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -1062,11 +1072,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -1140,11 +1150,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -1198,11 +1208,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -1258,11 +1268,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -1321,13 +1331,13 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
 
         const signature = utils.signForRegister("#1", 65000, 2000, ethAcc.address, signerPK)
 
         const txData = nodeRegistryLogic.methods.registerNodeFor("#1", 65000, signerAcc.address, 2000, "40000000000000000", signature.v, signature.r, signature.s).encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData }, pk)
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
@@ -1379,7 +1389,7 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
 
         const signature = utils.signForRegister("#1", 65000, 2000, ethAcc.address, signerPK)
 
@@ -1412,7 +1422,7 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
 
         const signature = utils.signForRegister("#1", 65000, 2000, ethAcc.address, signerPK)
 
@@ -1445,13 +1455,13 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
 
         const signature = utils.signForRegister("#1", 65000, 2000, ethAcc.address, signerPK)
 
         const txData = nodeRegistryLogic.methods.registerNodeFor("#1", 65000, signerAcc.address, 2000, "40000000000000000", signature.v, signature.r, signature.s).encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData }, pk)
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
 
@@ -1542,11 +1552,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -1598,7 +1608,7 @@ contract('NodeRegistry', async () => {
         const revealConvictData = nodeRegistryLogic.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s).encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: revealConvictData }, convictCaller)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const signerInfoAfter = await nodeRegistryData.methods.signerIndex(ethAcc.address).call()
 
         assert.strictEqual(signerInfoAfter.stage, '2')
@@ -1638,11 +1648,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -1718,11 +1728,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -1795,11 +1805,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -1875,11 +1885,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -1955,11 +1965,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -2046,11 +2056,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -2125,11 +2135,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -2230,11 +2240,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -2284,7 +2294,7 @@ contract('NodeRegistry', async () => {
         const revealConvictData = nodeRegistryLogic.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s).encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: revealConvictData }, convictCaller)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const signerInfoAfter = await nodeRegistryData.methods.signerIndex(ethAcc.address).call()
 
         assert.strictEqual(signerInfoAfter.stage, '2')
@@ -2334,11 +2344,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -2388,7 +2398,7 @@ contract('NodeRegistry', async () => {
         const revealConvictData = nodeRegistryLogic.methods.revealConvict(ethAcc.address, signedBlock.blockHash, signedBlock.block, signedBlock.v, signedBlock.r, signedBlock.s).encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: revealConvictData }, signerPK)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const signerInfoAfter = await nodeRegistryData.methods.signerIndex(ethAcc.address).call()
 
         assert.strictEqual(signerInfoAfter.stage, '2')
@@ -2427,11 +2437,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -2482,11 +2492,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -2517,12 +2527,12 @@ contract('NodeRegistry', async () => {
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataTwo, }, pk2)
         const registeredNodeTwo = await nodeRegistryData.methods.nodes(1).call()
 
-        assert.strictEqual('2', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('2', await nodeRegistryLogic.methods.totalNodes().call())
 
 
         const txDataRemoval = nodeRegistryLogic.methods.unregisteringNode(ethAcc.address).encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataRemoval }, pk)
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
 
         const lastNode = await nodeRegistryData.methods.nodes(0).call()
 
@@ -2571,11 +2581,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -2606,12 +2616,12 @@ contract('NodeRegistry', async () => {
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataTwo, }, pk2)
         const registeredNodeTwo = await nodeRegistryData.methods.nodes(1).call()
 
-        assert.strictEqual('2', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('2', await nodeRegistryLogic.methods.totalNodes().call())
 
 
         const txDataRemoval = nodeRegistryLogic.methods.unregisteringNode(ethAcc.address).encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataRemoval }, pk)
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
 
         const lastNode = await nodeRegistryData.methods.nodes(0).call()
 
@@ -2645,11 +2655,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -2680,12 +2690,12 @@ contract('NodeRegistry', async () => {
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataTwo, }, pk2)
         const registeredNodeTwo = await nodeRegistryData.methods.nodes(1).call()
 
-        assert.strictEqual('2', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('2', await nodeRegistryLogic.methods.totalNodes().call())
 
 
         const txDataRemoval = nodeRegistryLogic.methods.unregisteringNode(ethAcc.address).encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataRemoval }, pk)
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
 
         const lastNode = await nodeRegistryData.methods.nodes(0).call()
 
@@ -2723,11 +2733,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '50000000000000000001').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '50000000000000000001').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -2775,11 +2785,11 @@ contract('NodeRegistry', async () => {
         const approveDeposit = erc20Token.methods.approve(contracts.nodeRegistryLogic, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.ERC20Token, data: approveDeposit, }, pk)
 
-        assert.strictEqual('0', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('0', await nodeRegistryLogic.methods.totalNodes().call())
         const txData = nodeRegistryLogic.methods.registerNode("#1", 65000, 2000, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txData, }, pk)
 
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
         const block = await web3.eth.getBlock("latest")
 
         const registeredNode = await nodeRegistryData.methods.nodes(0).call()
@@ -2809,12 +2819,12 @@ contract('NodeRegistry', async () => {
         const txDataTwo = nodeRegistryLogic.methods.registerNode("#2", 65000, 64, '40000000000000000').encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataTwo, }, pk2)
 
-        assert.strictEqual('2', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('2', await nodeRegistryLogic.methods.totalNodes().call())
         const registeredNodeTwo = await nodeRegistryData.methods.nodes(1).call()
 
         const txDataRemoval = nodeRegistryLogic.methods.adminRemoveNodeFromRegistry(ethAcc.address).encodeABI()
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: txDataRemoval }, deployKey)
-        assert.strictEqual('1', await nodeRegistryData.methods.totalNodes().call())
+        assert.strictEqual('1', await nodeRegistryLogic.methods.totalNodes().call())
 
         const lastNode = await nodeRegistryData.methods.nodes(0).call()
 
