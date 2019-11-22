@@ -21,50 +21,54 @@ pragma solidity 0.5.10;
 
 //Contract for maintaining verified IN3 nodes list
 
+/// @title Incubed White List Contract
 
 contract IN3WhiteList {
 
-    ///DATA
+    ///proof hash for whiteListNodesList
     bytes32 proofHash;
 
+    ///Blocknumbe rfor last event of adding or removing node from whitelist
     uint public lastEventBlockNumber;
 
+    ///bytes array of whitelist nodes
     bytes public whiteListNodesList;
-    //in3 nodes list in mappings
+
+    ///in3 nodes list in mappings
     mapping(address=>uint) public whiteListNodes;
 
-    //for tracking this white listing belongs to which node registry
+    ///for tracking this white listing belongs to which node registry
     address public nodeRegistry;
 
-    //owner of this white listing contract, can be multisig
+    ///owner of this white listing contract, can be multisig
     address public owner;
 
-    // version: major minor fork(000) date(yyyy/mm/dd)
+    /// version: major minor fork(000) date(yyyy/mm/dd)
     uint constant public VERSION = 12300020191017;
 
-    ///EVENTS
-    // event for looking node added to whitelisting contract
+    /// event for looking node added to whitelisting contract
     event LogNodeWhiteListed(address nodeAddress);
 
-    // event for looking node removed from whitelisting contract
+    /// event for looking node removed from whitelisting contract
     event LogNodeRemoved(address nodeAddress);
 
-    ///MODIFIERS
-    //only owner modifier
+    ///only owner modifier
     modifier onlyOwner {
         require(msg.sender == owner,"Only owner can call this function.");
         _;
     }
 
-    ///CONSTRUCTOR
-    //white listing contract constructor
+    /// @notice constructor
+    /// @param _nodeRegistry address of a Node Registry-contract
+    ///white listing contract constructor
     constructor(address _nodeRegistry) public {
         nodeRegistry = _nodeRegistry;
         owner = msg.sender;
     }
 
-    ///FUNCTIONS
-    //function for registering node in white listing contract
+    /// @notice whitelisting node
+    /// @notice only owner is allowed to add node to whitelist
+    /// @param _nodeAddr address of node to be whitelisted
     function whiteListNode( address _nodeAddr)
         external
         onlyOwner
@@ -84,7 +88,8 @@ contract IN3WhiteList {
         emit LogNodeWhiteListed(_nodeAddr);
     }
 
-    //function for removing node from white listing contract
+    /// @notice removing node from white listing contract
+    /// @param _nodeAddr node address to be removed from whitelist
     function removeNode(address _nodeAddr)
         external
         onlyOwner
@@ -106,14 +111,17 @@ contract IN3WhiteList {
         emit LogNodeRemoved(_nodeAddr);
     }
 
+    /// @notice getting whitelist byte array
     function getWhiteList() public view returns (bytes memory tempBytes) {
         tempBytes = whiteListNodesList;
     }
 
+    /// @notice function for getting proof hash of bytes array of whitelisted nodes addresses
     function getProofHash() public view returns (bytes32 tempBytes) {
         tempBytes = proofHash;
     }
 
+    /// @notice function for getting last event blocknumber
     function getLastEventBlockNumber()  public view returns (uint) {
         return lastEventBlockNumber;
     }
