@@ -19,14 +19,12 @@
 
 pragma solidity 0.5.10;
 
-//Contract for maintaining verified IN3 nodes list
 
 /// @title Incubed White List Contract
-
 contract IN3WhiteList {
 
     ///proof hash for whiteListNodesList
-    bytes32 proofHash;
+    bytes32 public proofHash;
 
     ///Blocknumbe rfor last event of adding or removing node from whitelist
     uint public lastEventBlockNumber;
@@ -54,7 +52,7 @@ contract IN3WhiteList {
 
     ///only owner modifier
     modifier onlyOwner {
-        require(msg.sender == owner,"Only owner can call this function.");
+        require(msg.sender == owner, "Only owner can call this function.");
         _;
     }
 
@@ -76,7 +74,7 @@ contract IN3WhiteList {
         require(whiteListNodes[_nodeAddr] == 0, "Node already exists in whitelist.");
 
         bytes memory newAddr = abi.encodePacked(_nodeAddr);
-        for (uint i = 0;i<20;i++) {
+        for (uint i = 0; i < 20; i++) {
             whiteListNodesList.push(newAddr[i]);
         }
         whiteListNodes[_nodeAddr] = whiteListNodesList.length;
@@ -98,10 +96,11 @@ contract IN3WhiteList {
         require(location > 0, "Node doesnt exist in whitelist.");
 
         uint length = whiteListNodesList.length-1;
+        for (uint i = 0; i < 20; i++) {
+            if (location != length+1) { //check if its not first or not last addr then swap last with item to be deleted
+                whiteListNodesList[location-i-1] = whiteListNodesList[length-i];
+            }
 
-        for (uint i = 0;i<20;i++) {
-            if (location!=length+1) { //check if its not first or not last addr then swap last with item to be deleted
-                whiteListNodesList[location-i-1] = whiteListNodesList[length-i];}
             delete whiteListNodesList[length-i];
         }
 
