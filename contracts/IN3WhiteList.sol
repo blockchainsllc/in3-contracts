@@ -26,11 +26,12 @@ pragma solidity 0.5.10;
 contract IN3WhiteList {
 
     /// @notice proof hash for whiteListNodesList
-    /// @dev    this value is the first storage-entry and is used to verify the correct whitelist in the client. 
+    /// @dev    this value is the first storage-entry and is used to verify the correct whitelist in the client.
     ///         This way we only need to verify the merkle proof for this one storage value and compare it against the hash of the data.
     bytes32 public proofHash;
 
-    /// @notice Blocknumber for last event of adding or removing node from whitelist, which is used for the client to find out, if his list is up to date.
+    /// @notice Blocknumber for last event of adding or removing node from the whitelist
+    /// @dev    this should be used by the clients to find out, if his list is up to date.
     /// @dev    this value is used for easier lookup. Instead on running eth_getLogs, we can simply find out be fetching this blocknumber
     uint public lastEventBlockNumber;
 
@@ -81,7 +82,9 @@ contract IN3WhiteList {
         require(whiteListNodes[_nodeAddr] == 0, "Node already exists in whitelist.");
 
         bytes memory newAddr = abi.encodePacked(_nodeAddr);
-        for (uint i = 0; i < 20; i++) whiteListNodesList.push(newAddr[i]);
+        for (uint i = 0; i < 20; i++) {
+            whiteListNodesList.push(newAddr[i]);
+        }
         whiteListNodes[_nodeAddr] = whiteListNodesList.length;
 
         proofHash = keccak256(abi.encodePacked(whiteListNodesList));
