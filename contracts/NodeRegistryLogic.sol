@@ -508,13 +508,12 @@ contract NodeRegistryLogic {
     {
         _checkNodePropertiesInternal(_deposit);
 
-        IERC20 supportedToken = nodeRegistryData.supportedToken();
+        IERC20 supportedERC20Token = nodeRegistryData.supportedToken();
 
-        require(supportedToken.transferFrom(_owner, address(nodeRegistryData), _deposit), "ERC20 token transfer failed");
+        require(supportedERC20Token.transferFrom(_owner, address(nodeRegistryData), _deposit), "ERC20 token transfer failed");
 
         NodeRegistryData.SignerInformation memory si = nodeRegistryData.getSignerInformation(_signer);
         bytes32 urlHash = keccak256(bytes(_url));
-
 
         (bool _used,) = nodeRegistryData.urlIndex(urlHash);
 
