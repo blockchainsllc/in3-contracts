@@ -178,7 +178,6 @@ contract('BlockhashRegistry', async () => {
             //  const numberBlocks = allBlocks.length
             for (let i = 0; i < numberBlocks; i++) {
 
-                if (allBlocks[i].parentHash === "0x0000000000000000000000000000000000000000000000000000000000000000") console.log(allBlocks[i])
 
                 const s = new in3Common.Block(allBlocks[i]).serializeHeader()
 
@@ -188,37 +187,6 @@ contract('BlockhashRegistry', async () => {
                 assert.strictEqual(result.bhash, allBlocks[i].hash)
                 assert.strictEqual(parseInt(result.blockNumber), parseInt(allBlocks[i].number))
 
-            }
-        }
-    })
-
-    it("should successfully recalculate a chain", async () => {
-
-        const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
-        const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
-
-        const realBlocks = JSON.parse(fs.readFileSync('testData/blockHeaders.json').toString('utf8'))
-
-        const chains = Object.keys(realBlocks);
-
-        for (let j = 0; j < chains.length; j++) {
-
-            let totalBlocks = process.env.GITLAB_CI ? realBlocks[chains[j]] : realBlocks[chains[j]].slice(0, 10)
-            for (let i = 0; i < totalBlocks.length; i += 45) {
-                const allBlocks = totalBlocks.slice(i, i + 45)
-                const firstBlock = allBlocks.shift();
-                const startHash = allBlocks[allBlocks.length - 1].hash;
-
-                let serialzedBlocks = [];
-
-                for (const b of allBlocks) {
-                    const s = new in3Common.Block(b).serializeHeader()
-                    serialzedBlocks.push(s);
-                }
-
-                serialzedBlocks = serialzedBlocks.reverse()
-                const result = await blockHashContract.methods.reCalculateBlockheaders(serialzedBlocks, startHash, allBlocks[allBlocks.length - 1].number).call()
-                assert.strictEqual(result, "0x0000000000000000000000000000000000000000000000000000000000000000")
             }
         }
     })
