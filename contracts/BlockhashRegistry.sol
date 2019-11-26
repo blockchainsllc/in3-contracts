@@ -62,7 +62,7 @@ contract BlockhashRegistry {
     /// @dev function is public due to the usage of a dynamic bytes array (not yet supported for external functions)
     function recreateBlockheaders(uint _blockNumber, bytes[] memory _blockheaders) public {
         /// we should never fail this assert, as this would mean that we were able to recreate a invalid blockchain
-        assert(_blockNumber > _blockheaders.length);
+        require(_blockNumber > _blockheaders.length, "too many blockheaders provided");
         require(_blockNumber < block.number, "cannot recreate a not yet existing block");
 
         require(_blockheaders.length > 0, "no blockheaders provided");
