@@ -106,6 +106,9 @@ contract IN3WhiteList {
 
         whiteListNodesList.length -= 20;
 
+        //update proof hash
+        proofHash = keccak256(abi.encodePacked(whiteListNodesList));
+
         lastEventBlockNumber = block.number;
         emit LogNodeRemoved(_nodeAddr);
     }
