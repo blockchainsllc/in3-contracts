@@ -41,10 +41,11 @@ contract BlockhashRegistry {
     /// @param _numBlocks the number of blocks to search for
     /// @return the closes snapshot of found within the given range, 0 else
     function searchForAvailableBlock(uint _startNumber, uint _numBlocks) external view returns (uint) {
+        uint target = _startNumber + _numBlocks;
 
-        require((_startNumber + _numBlocks) <= block.number, "invalid search");
+        require(target <= block.number || target < _startNumber, "invalid search");
 
-        for (uint i = _startNumber; i <= (_numBlocks + _startNumber); i++) {
+        for (uint i = _startNumber; i <= target; i++) {
             if (blockhashMapping[i] != 0x0) {
                 return i;
             }
