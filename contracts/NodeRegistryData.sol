@@ -448,6 +448,9 @@ contract NodeRegistryData {
 
         assert(length > 0);
 
+        // we set the SignerIndex to an invalid index.
+        signerIndex[nodes[_nodeIndex].signer].index = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff;
+
         // move the last entry to the removed one.
         In3Node memory m = nodes[length - 1];
         nodes[_nodeIndex] = m;
