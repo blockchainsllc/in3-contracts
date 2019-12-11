@@ -7,12 +7,13 @@ stages:
   - build
   - test
   - deploy
-  
+  - deployBlockchain
+
 lint-contracts-solium:
   stage: lint
   tags:
     - short-jobs
-  script: 
+  script:
     - sh /prepare.sh
     - npm i ethlint
     - npm run lint:solium
@@ -21,7 +22,7 @@ lint-contracts-solhint:
   stage: lint
   tags:
     - short-jobs
-  script: 
+  script:
     - sh /prepare.sh
     - npm i solhint
     - npm run lint:solhint
@@ -34,10 +35,27 @@ compile-contracts:
     - docker:dind
   image: docker.slock.it/build-images/deployment
   script:
-    - docker run --rm -v $(pwd)/contracts:/contracts ethereum/solc:0.5.10 --optimize --combined-json abi,bin,bin-runtime,compact-format,hashes,interface,metadata,srcmap-runtime /contracts/NodeRegistry.sol /contracts/BlockhashRegistry.sol > contracts/contracts.json
+    - curl https://codeload.github.com/OpenZeppelin/openzeppelin-contracts/tar.gz/v2.4.0 | tar xvz -C .
+    - mv openzeppelin-contracts-2.4.0 contracts/@openzeppelin
+    - docker run --rm -v $(pwd)/contracts:/contracts ethereum/solc:0.5.10 @openzeppelin/=/contracts/@openzeppelin/ --optimize --combined-json abi,bin,bin-runtime,compact-format,hashes,interface,metadata,srcmap-runtime  /contracts/ERC20Wrapper.sol /contracts/NodeRegistryData.sol /contracts/NodeRegistryLogic.sol /contracts/BlockhashRegistry.sol > contracts/contracts.json
   artifacts:
     paths:
       - contracts/contracts.json
+
+truffle-compile-contracts:
+  stage: build
+  tags:
+    - short-jobs
+  script:
+    - sh /prepare.sh
+    - npm install
+    - npm run compile
+  artifacts:
+    paths:
+      - build/contracts/BlockhashRegistry.json
+      - build/contracts/NodeRegistryLogic.json
+      - build/contracts/NodeRegistryData.json
+      - build/contracts/ERC20Wrapper.json
 
 test-parity:
   stage: test
@@ -77,6 +95,99 @@ push-to-slockit-registry:
     - npm --no-git-tag-version -f version $CI_COMMIT_TAG --allow-same-version
     - npm publish
 
+deployment-dryrun:
+  stage: deployBlockchain
+  tags:
+    - short-jobs
+  services:
+    - name: docker.slock.it/core-technology/parity-timemachine:master
+      alias: blockchainclient
+  dependencies:
+    - truffle-compile-contracts
+  variables:
+    RPCURL: "http://blockchainclient:8545"
+    SRV_OWNER: "0x4d5db4107d237df6a3d58ee5f70ae63d73d7658d4026f2eefd2f204c81682cb7"
+    NODE_URL: "http://localhost:8545"
+  script:
+    - sh /prepare.sh
+    - npm i
+    - node deployment/gnosis-safe
+
+deployment-goerli-stage:
+  stage: deployBlockchain
+  tags:
+    - short-jobs
+  dependencies:
+    - truffle-compile-contracts
+  variables:
+    RPCURL: "https://rpc.slock.it/goerli"
+    NODE_URL: "https://in3.stage.slock.it/goerli"
+  script:
+    - sh /prepare.sh
+    - npm i
+    - node deployment/gnosis-safe
+  when: manual
+
+deployment-kovan-stage:
+  stage: deployBlockchain
+  tags:
+    - short-jobs
+  dependencies:
+    - truffle-compile-contracts
+  variables:
+    RPCURL: "https://rpc.slock.it/kovan"
+    NODE_URL: "https://in3.stage.slock.it/kovan"
+  script:
+    - sh /prepare.sh
+    - npm i
+    - node deployment/gnosis-safe
+  when: manual
+
+deployment-mainnet-stage:
+  stage: deployBlockchain
+  tags:
+    - long-jobs
+  dependencies:
+    - truffle-compile-contracts
+  variables:
+    RPCURL: "https://rpc.slock.it/mainnet"
+    NODE_URL: "https://in3-v2.slock.it/mainnet"
+  script:
+    - sh /prepare.sh
+    - npm i
+    - node deployment/gnosis-safe
+  when: manual
+
+deployment-kovan-production:
+  stage: deployBlockchain
+  tags:
+    - short-jobs
+  dependencies:
+    - truffle-compile-contracts
+  variables:
+    RPCURL: "https://rpc.slock.it/kovan"
+    NODE_URL: "https://in3-v2.slock.it/kovan"
+  script:
+    - sh /prepare.sh
+    - npm i
+    - node deployment/gnosis-safe
+  when: manual
+
+deployment-goerli-production:
+  stage: deployBlockchain
+  tags:
+    - short-jobs
+  dependencies:
+    - truffle-compile-contracts
+  variables:
+    RPCURL: "https://rpc.slock.it/goerli"
+    NODE_URL: "https://in3-v2.slock.it/goerli"
+  script:
+    - sh /prepare.sh
+    - npm i
+    - node deployment/gnosis-safe
+  when: manual
+
 deploy-to-slockit-public_npm:
   stage: deploy
   tags:
@@ -91,6 +202,3 @@ deploy-to-slockit-public_npm:
     - sh /prepare.sh
     - npm --no-git-tag-version --allow-same-version -f version $CI_COMMIT_TAG
     - npm publish --registry https://registry.npmjs.org
-
-
-
