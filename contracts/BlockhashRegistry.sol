@@ -74,6 +74,12 @@ contract BlockhashRegistry {
         bytes32 currentBlockhash = blockhashMapping[_blockNumber];
         require(currentBlockhash != 0x0, "parentBlock is not available");
 
+        /// if the blocknumber we want to store is within the last 256 blocks, we use the evm hash
+        if (bnr > block.number-256) {
+            saveBlockNumber(bnr);
+            return;
+        }
+
         bytes32 calculatedHash = reCalculateBlockheaders(_blockheaders, currentBlockhash, _blockNumber);
         require(calculatedHash != 0x0, "invalid headers");
 

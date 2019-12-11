@@ -434,6 +434,8 @@ contract('BlockhashRegistry', async () => {
         const block = await web3.eth.getBlock('latest')
         const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
         const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
+        // we need 256 more blocks to make this work
+        for (let i = 0; i < 255; i++) await utils.createAccount(null, '1000000000')
 
         let blockheaderArray = [];
 
@@ -455,5 +457,22 @@ contract('BlockhashRegistry', async () => {
 
     })
 
+    it("should run even if the blockdata are wrong, if it is in the last 256 blocks", async () => {
+        const pk = await utils.createAccount(null, '1000000000')
+
+        const block = await web3.eth.getBlock('latest')
+        const tx = await deployment.deployBlockHashRegistry(new Web3(web3.currentProvider))
+        const blockHashContract = new web3.eth.Contract(BlockhashRegistry.abi, tx.contractAddress)
+        // we need 256 more blocks to make this work
+        const startNumber = block.number
+
+        // give him garbage-data
+        let blockheaderArray = [];
+        for (let i = 1; i < 50; i++)
+            blockheaderArray.push(Buffer.from('12345', 'hex'))
+
+        const txData = blockHashContract.methods.recreateBlockheaders(startNumber, blockheaderArray).encodeABI()
+        await utils.handleTx({ to: tx.contractAddress, data: txData }, pk)
+    })
 
 })
