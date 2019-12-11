@@ -35,7 +35,6 @@ compile-contracts:
     - docker:dind
   image: docker.slock.it/build-images/deployment
   script:
-    - sh /prepare.sh
     - curl https://codeload.github.com/OpenZeppelin/openzeppelin-contracts/tar.gz/v2.4.0 | tar xvz -C .
     - mv openzeppelin-contracts-2.4.0 contracts/@openzeppelin
     - docker run --rm -v $(pwd)/contracts:/contracts ethereum/solc:0.5.10 @openzeppelin/=/contracts/@openzeppelin/ --optimize --combined-json abi,bin,bin-runtime,compact-format,hashes,interface,metadata,srcmap-runtime  /contracts/ERC20Wrapper.sol /contracts/NodeRegistryData.sol /contracts/NodeRegistryLogic.sol /contracts/BlockhashRegistry.sol > contracts/contracts.json
