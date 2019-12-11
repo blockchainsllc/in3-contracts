@@ -2,7 +2,7 @@ const Web3 = require("web3")
 const fs = require("fs")
 const util = require("../src/utils/utils")
 
-
+const depositValue = '50000000000000000'
 let errorMapping = {}
 
 const deployContract = async (web3, byteCode, privateKey) => {
@@ -465,8 +465,8 @@ const deployGnosisSafeWallet = async () => {
 
         console.log("minting tokens")
         const txMintData = erc20Contract.methods.mint().encodeABI()
-        const gasTxMint = await erc20Contract.methods.mint().estimateGas({ from: deployerAddress.address, value: '50000000000000000' })
-        await sendTx(web3, txMintData, erc20Address, '50000000000000000', Math.floor(gasTxMint * 1.1), deployerAddress.privateKey)
+        const gasTxMint = await erc20Contract.methods.mint().estimateGas({ from: deployerAddress.address, value: depositValue })
+        await sendTx(web3, txMintData, erc20Address, depositValue, Math.floor(gasTxMint * 1.1), deployerAddress.privateKey)
     }
     else erc20Address = process.env.ERC20
 
@@ -474,15 +474,15 @@ const deployGnosisSafeWallet = async () => {
 
     console.log("transfering tokens")
     // transfering tokens to the erc20 contract
-    const tokenTransferTxData = erc20Contract.methods.transfer(deployedWalletAddress, '50000000000000000').encodeABI()
-    const gasTokenTransfer = await erc20Contract.methods.transfer(deployedWalletAddress, '50000000000000000').estimateGas({ from: deployerAddress.address })
+    const tokenTransferTxData = erc20Contract.methods.transfer(deployedWalletAddress, depositValue).encodeABI()
+    const gasTokenTransfer = await erc20Contract.methods.transfer(deployedWalletAddress, depositValue).estimateGas({ from: deployerAddress.address })
     await sendTx(web3, tokenTransferTxData, erc20Address, 0, Math.floor(gasTokenTransfer * 1.1), deployerAddress.privateKey)
 
 
     console.log("balance", await erc20Contract.methods.balanceOf(deployedWalletAddress).call())
     // allow tokens to be transfered by the contract
-    const txApproveContract = erc20Contract.methods.approve(nodeRegistryAddress, '50000000000000000').encodeABI()
-    const gasApproveToken = await erc20Contract.methods.approve(nodeRegistryAddress, '50000000000000000').estimateGas({ from: deployedWalletAddress })
+    const txApproveContract = erc20Contract.methods.approve(nodeRegistryAddress, depositValue).encodeABI()
+    const gasApproveToken = await erc20Contract.methods.approve(nodeRegistryAddress, depositValue).estimateGas({ from: deployedWalletAddress })
 
     nonceWallet = await gnosisProxy.methods.nonce().call()
 
