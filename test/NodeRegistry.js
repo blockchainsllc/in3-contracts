@@ -2986,10 +2986,10 @@ contract('NodeRegistry', async () => {
         const nodeRegistryData = new web3.eth.Contract(NodeRegistryData.abi, contracts.nodeRegistryData)
 
         // must fail, because it is not the current admin
-        const transferAdmin = nodeRegistry.methods.transferAdmin('0x0000000000000000000000000000000000000000').encodeABI()
+        const transferAdmin = nodeRegistryLogic.methods.transferAdmin('0x0000000000000000000000000000000000000000').encodeABI()
         assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: transferAdmin, }, deployKey).catch(_ => false))
 
-        const transferAdmin2 = nodeRegistry.methods.transferAdmin(newAdmin).encodeABI()
+        const transferAdmin2 = nodeRegistryLogic.methods.transferAdmin(newAdmin).encodeABI()
         assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: transferAdmin2, }, pk).catch(_ => false))
         await utils.handleTx({ to: contracts.nodeRegistryLogic, data: transferAdmin2, }, deployKey)
 
