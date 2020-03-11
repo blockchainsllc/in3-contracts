@@ -123,6 +123,13 @@ contract NodeRegistryLogic {
         nodeRegistryData.adminSetLogic(pendingNewLogic);
     }
 
+    /// @notice transfers the admin key
+    /// @dev this will  replace the current adminKey
+    function transferAdmin(address _newAdmin) external onlyAdmin {
+        require(_newLogic != address(0x0), "0x address not supported");
+        adminKey = _newAdmin;
+    }
+
     /// @notice removes an in3-server from the registry
     /// @param _signer the signer-address of the in3-node
     /// @dev only callable by the adminKey-account
