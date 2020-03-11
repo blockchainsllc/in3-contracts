@@ -2971,4 +2971,28 @@ contract('NodeRegistry', async () => {
 
     })
 
+    it("should allow to transfer the adminkey", async () => {
+
+        const deployKey = await utils.createAccount(null, '40000000000000000')
+        const newAdmin = '0x1234567890123456789012345678901234567890'
+
+        const pk = await utils.createAccount(null, '40000000000000000')
+
+        const signerPK = await utils.createAccount()
+        const signerAcc = await web3.eth.accounts.privateKeyToAccount(signerPK);
+
+        const contracts = await deployment.deployContracts(web3, deployKey)
+        const nodeRegistryLogic = new web3.eth.Contract(NodeRegistryLogic.abi, contracts.nodeRegistryLogic)
+        const nodeRegistryData = new web3.eth.Contract(NodeRegistryData.abi, contracts.nodeRegistryData)
+
+        // must fail, because it is not the current admin
+        const transferAdmin = nodeRegistry.methods.transferAdmin('0x0000000000000000000000000000000000000000').encodeABI()
+        assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: transferAdmin, }, deployKey).catch(_ => false))
+
+        const transferAdmin2 = nodeRegistry.methods.transferAdmin(newAdmin).encodeABI()
+        assert.isFalse(await utils.handleTx({ to: contracts.nodeRegistryLogic, data: transferAdmin2, }, pk).catch(_ => false))
+        await utils.handleTx({ to: contracts.nodeRegistryLogic, data: transferAdmin2, }, deployKey)
+
+    })
+
 })
