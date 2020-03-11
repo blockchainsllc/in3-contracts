@@ -126,7 +126,7 @@ contract NodeRegistryLogic {
     /// @notice transfers the admin key
     /// @dev this will  replace the current adminKey
     function transferAdmin(address _newAdmin) external onlyAdmin {
-        require(_newLogic != address(0x0), "0x address not supported");
+        require(_newAdmin != address(0x0), "0x address not supported");
         adminKey = _newAdmin;
     }
 
