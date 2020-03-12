@@ -492,7 +492,7 @@ contract NodeRegistryLogic {
 
         // solium-disable-next-line security/no-block-members
         if (block.timestamp < timestampAdminKeyActive) { // solhint-disable-line not-rely-on-time
-            require(_deposit < maxDepositFirstYear, "Limit of 50 ETH reached");
+            require(_deposit <= maxDepositFirstYear, "Limit of 50 ETH reached");
         }
     }
 
