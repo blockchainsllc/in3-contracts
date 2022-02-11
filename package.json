@@ -37,7 +37,7 @@
     "web3": "^1.2.1"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^2.3.0",
+    "@openzeppelin/contracts": "^4.4.2",
     "ethereumjs-utils": "^5.2.5",
     "openzeppelin-solidity": "2.3.0"
   }
